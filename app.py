@@ -6,7 +6,7 @@ import networkx as nx
 import pandas as pd
 import streamlit as st
 
-# Configuración de página
+# Configuración inicial de la página
 st.set_page_config(
     page_title="TSP Solver • UPC",
     page_icon="⚡",
@@ -15,24 +15,22 @@ st.set_page_config(
 )
 
 # -------------------------------------------------------------
-# ESTILOS CSS REFORZADOS (ALTO CONTRASTE Y DIFERENCIACIÓN SLATE/INDIGO)
+# ESTILOS CSS PERSONALIZADOS
 # -------------------------------------------------------------
 st.markdown(
     """
 <style>
-    /* 1. Fondo estructurado y colores base */
+    /* 1. Base clara y tipografía */
     .stApp {
         background-color: #f8fafc;
         color: #0f172a !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
-    /* 2. Forzar textos oscuros en TODOS los elementos de Streamlit */
+    /* 2. Alto contraste en textos generales */
     p, span, label, div, h1, h2, h3, h4, h5, h6 {
         color: #0f172a !important;
     }
-    
-    /* Forzado estricto en etiquetas de inputs */
     [data-testid="stWidgetLabel"] p, .stWidgetLabel label {
         color: #1e293b !important;
         font-weight: 700 !important;
@@ -40,7 +38,7 @@ st.markdown(
         letter-spacing: 0.5px;
     }
 
-    /* 3. Encabezado editorial con acento Índigo */
+    /* 3. Encabezado principal */
     .kicker {
         text-align: center;
         font-family: 'Courier New', Courier, monospace;
@@ -67,21 +65,26 @@ st.markdown(
         font-size: 14px;
         color: #475569 !important;
         max-width: 620px;
-        margin: 0 auto 25px auto;
-        line-height: 1.6;
-    }
-    .formula-tag {
-        background-color: #e0e7ff;
-        color: #3730a3 !important;
-        padding: 3px 8px;
-        border-radius: 6px;
-        font-family: 'Courier New', monospace;
-        font-weight: 700;
-        font-size: 12px;
-        border: 1px solid #c7d2fe;
+        margin: 0 auto 12px auto;
+        line-height: 1.5;
     }
 
-    /* 4. Tarjetas diferenciadas con acento sutil */
+    /* 4. Bloque aislado para la fórmula matemática */
+    .formula-box {
+        background-color: #eef2ff;
+        border: 1px solid #c7d2fe;
+        color: #3730a3 !important;
+        padding: 8px 18px;
+        border-radius: 8px;
+        font-family: 'Courier New', monospace;
+        font-weight: 700;
+        font-size: 13px;
+        display: inline-block;
+        margin: 4px auto 20px auto;
+        white-space: nowrap;
+    }
+
+    /* 5. Tarjetas estructuradas */
     .card {
         background: #ffffff;
         border: 1px solid #e2e8f0;
@@ -122,12 +125,12 @@ st.markdown(
         margin: 0 0 16px 0;
     }
 
-    /* 5. Píldoras de estado y chips superiores */
+    /* 6. Píldoras superiores */
     .chip-container {
         display: flex;
         justify-content: center;
         gap: 10px;
-        margin-bottom: 25px;
+        margin-bottom: 22px;
         flex-wrap: wrap;
     }
     .chip {
@@ -150,7 +153,7 @@ st.markdown(
         border: 1px solid #e2e8f0;
     }
 
-    /* 6. Inputs con tipografía negra sobre fondo blanco */
+    /* 7. Entradas numéricas */
     div[data-testid="stNumberInput"] input {
         border-radius: 8px !important;
         border: 1.5px solid #cbd5e1 !important;
@@ -166,7 +169,7 @@ st.markdown(
         border-color: #cbd5e1 !important;
     }
 
-    /* 7. Botón de acción principal (Índigo) */
+    /* 8. Botón primario */
     div.stButton > button {
         border-radius: 8px !important;
         border: none !important;
@@ -187,7 +190,26 @@ st.markdown(
         color: #ffffff !important;
     }
 
-    /* 8. Tarjetas de métricas con letras visibles */
+    /* 9. Botón de descarga CSV */
+    div.stDownloadButton > button {
+        border-radius: 8px !important;
+        border: 1px solid #cbd5e1 !important;
+        background-color: #ffffff !important;
+        color: #1e293b !important;
+        font-weight: 700 !important;
+        font-size: 13px !important;
+        padding: 6px 14px !important;
+        transition: all 0.2s ease !important;
+    }
+    div.stDownloadButton > button:hover {
+        border-color: #4f46e5 !important;
+        color: #4f46e5 !important;
+    }
+    div.stDownloadButton > button p {
+        color: #1e293b !important;
+    }
+
+    /* 10. Métricas */
     div[data-testid="stMetricValue"] {
         color: #0f172a !important;
         font-weight: 800 !important;
@@ -200,16 +222,59 @@ st.markdown(
         font-weight: 700 !important;
         letter-spacing: 0.5px !important;
     }
+
+    /* 11. Ocultar barra flotante nativa */
+    [data-testid="stElementToolbar"] {
+        display: none !important;
+    }
+
+    /* 12. Forzar blanco en el menú desplegable de columnas */
+    .glideDataGrid-context-menu,
+    [data-testid="stDataFrame"] div[role="menu"],
+    div[class*="context-menu"],
+    div[class*="glideDataGrid"] {
+        color: #ffffff !important;
+    }
+
+    .glideDataGrid-context-menu *,
+    [data-testid="stDataFrame"] div[role="menu"] *,
+    div[class*="context-menu"] *,
+    div[role="menuitem"],
+    div[role="menuitem"] span,
+    div[role="menuitem"] p {
+        color: #ffffff !important;
+        fill: #ffffff !important;
+        stroke: #ffffff !important;
+    }
+
+    div[role="menu"] svg,
+    div[class*="context-menu"] svg {
+        fill: #ffffff !important;
+        stroke: #ffffff !important;
+        color: #ffffff !important;
+    }
+
+    div[role="menu"] input,
+    div[class*="context-menu"] input {
+        color: #ffffff !important;
+        background-color: #1e293b !important;
+        border: 1px solid #475569 !important;
+    }
+
+    div[role="menuitem"]:hover {
+        background-color: #334155 !important;
+        color: #38bdf8 !important;
+    }
 </style>
 """,
     unsafe_allow_html=True,
 )
 
 # -------------------------------------------------------------
-# CABECERA VISUAL EDITORIAL
+# CABECERA VISUAL
 # -------------------------------------------------------------
 st.markdown(
-    '<div class="kicker">OPTIMIZACIÓN COMBINATORIA • UPC 2026-20</div>',
+    '<div class="kicker">OPTIMIZACIÓN COMBINATORIA • MATEMÁTICA COMPUTACIONAL</div>',
     unsafe_allow_html=True,
 )
 st.markdown(
@@ -217,13 +282,15 @@ st.markdown(
     unsafe_allow_html=True,
 )
 st.markdown(
-    '<div class="hero-subtitle">'
-    'Búsqueda exhaustiva por fuerza bruta para hallar el ciclo de distancia mínima con <span class="formula-tag">C(π) = ∑ w(vi, vi+1)</span> en grafos ponderados no dirigidos.'
-    "</div>",
+    '<div class="hero-subtitle">Búsqueda exhaustiva por fuerza bruta para hallar el ciclo hamiltoniano de coste mínimo en grafos ponderados no dirigidos.</div>',
     unsafe_allow_html=True,
 )
 
-# Píldoras de estado superiores
+st.markdown(
+    '<div style="text-align:center;"><div class="formula-box">Función Objetivo: &nbsp; C(π) = ∑ w(vi, vi+1)</div></div>',
+    unsafe_allow_html=True,
+)
+
 st.markdown(
     """
 <div class="chip-container">
@@ -237,7 +304,7 @@ st.markdown(
 )
 
 # -------------------------------------------------------------
-# TARJETA 1: PARÁMETROS Y TOPOLOGÍA
+# TARJETA 1: ENTRADA DE PARÁMETROS
 # -------------------------------------------------------------
 st.markdown(
     """
@@ -246,7 +313,7 @@ st.markdown(
         <div class="step-badge">1</div>
         <div class="card-title">Configuración de vértices y topología</div>
     </div>
-    <div class="card-desc">Define el número de ciudades para evaluar el espacio factorial (n - 1)! / 2 y generar aristas conexas.</div>
+    <div class="card-desc">Define el número de vértices (n) y la densidad para construir la matriz de costos y calcular las rutas.</div>
 </div>
 """,
     unsafe_allow_html=True,
@@ -259,35 +326,37 @@ with c_input1:
   )
 with c_input2:
   densidad = st.number_input(
-      "DENSIDAD DE ARISTAS (%)", min_value=20, max_value=100, value=60, step=10
+      "DENSIDAD DE ARISTAS (%)", min_value=20, max_value=100, value=50, step=10
   )
 with c_btn:
   st.write("&nbsp;")
   generar = st.button("🎲 Generar Nuevo Grafo", use_container_width=True)
 
-# Control de estado de grafo
+# -------------------------------------------------------------
+# [LÓGICA CLAVE 1]: MODELADO MATRICIAL Y GENERACIÓN NO CIRCULAR
+# -------------------------------------------------------------
 if "matriz" not in st.session_state or generar or len(st.session_state.matriz) != n:
-  if generar:
-    random.seed(int(time.time()))
-  else:
-    random.seed(42)
+  random.seed(int(time.time()) if generar else 100)
 
   matriz = [[None for _ in range(n)] for _ in range(n)]
 
-  # Ciclo hamiltoniano base garantizado
+  # Ciclo hamiltoniano base desordenado
+  orden_base = list(range(n))
+  random.shuffle(orden_base)
   for i in range(n):
-    u, v = i, (i + 1) % n
-    p = random.randint(10, 35)
-    matriz[u][v] = p
-    matriz[v][u] = p
+    u = orden_base[i]
+    v = orden_base[(i + 1) % n]
+    peso = random.randint(10, 35)
+    matriz[u][v] = peso
+    matriz[v][u] = peso
 
-  # Aristas aleatorias adicionales según la densidad
+  # Conexiones transversales según densidad
   for i in range(n):
     for j in range(i + 1, n):
       if matriz[i][j] is None and random.random() < (densidad / 100.0):
-        p = random.randint(15, 60)
-        matriz[i][j] = p
-        matriz[j][i] = p
+        peso = random.randint(15, 60)
+        matriz[i][j] = peso
+        matriz[j][i] = peso
 
   st.session_state.matriz = matriz
 
@@ -295,7 +364,7 @@ matriz = st.session_state.matriz
 nombres = [chr(65 + i) for i in range(n)]
 
 # -------------------------------------------------------------
-# CÁLCULO DE FUERZA BRUTA (PERMUTACIONES)
+# [LÓGICA CLAVE 2]: FUERZA BRUTA PARA EL TSP (O(n!))
 # -------------------------------------------------------------
 rutas = []
 mejor_costo = float("inf")
@@ -305,6 +374,7 @@ for perm in itertools.permutations(range(1, n)):
   ruta = [0] + list(perm) + [0]
   costo = 0
   valida = True
+
   for k in range(n):
     u, v = ruta[k], ruta[k + 1]
     if matriz[u][v] is None:
@@ -313,12 +383,13 @@ for perm in itertools.permutations(range(1, n)):
     costo += matriz[u][v]
 
   rutas.append((ruta, costo, valida))
+
   if valida and costo < mejor_costo:
     mejor_costo = costo
     mejor_ruta = ruta
 
 # -------------------------------------------------------------
-# TARJETA 2: VISUALIZACIÓN DEL GRAFO Y CICLO ÓPTIMO
+# TARJETA 2: VISUALIZACIÓN DEL GRAFO ORGÁNICO
 # -------------------------------------------------------------
 st.markdown(
     """
@@ -327,7 +398,7 @@ st.markdown(
         <div class="step-badge">2</div>
         <div class="card-title">Representación topológica y ciclo óptimo</div>
     </div>
-    <div class="card-desc">El nodo A resalta el origen/retorno. Las aristas en verde esmeralda forman el ciclo hamiltoniano mínimo.</div>
+    <div class="card-desc">Disposición de fuerzas orgánicas (spring layout). En verde esmeralda se resalta el ciclo de menor costo global.</div>
 </div>
 """,
     unsafe_allow_html=True,
@@ -341,19 +412,18 @@ for i in range(n):
     if matriz[i][j] is not None:
       G.add_edge(nombres[i], nombres[j], weight=matriz[i][j])
 
-pos = nx.circular_layout(G)
+pos = nx.spring_layout(G, seed=42, k=1.8 / (n**0.5), iterations=50)
 
-# Renderizado con Matplotlib en alta definición
 fig, ax = plt.subplots(figsize=(7.2, 4.8), dpi=140)
 fig.patch.set_facecolor("#ffffff")
 ax.set_facecolor("#ffffff")
 
-# 1. Aristas base (Gris tenue azulado)
+# Aristas base
 nx.draw_networkx_edges(
     G, pos, ax=ax, edge_color="#e2e8f0", width=1.4, style="solid", alpha=0.9
 )
 
-# 2. Resaltar ciclo óptimo (Verde Esmeralda #059669)
+# Resaltar ciclo óptimo
 if mejor_ruta:
   aristas_opt = [
       (nombres[mejor_ruta[i]], nombres[mejor_ruta[i + 1]]) for i in range(n)
@@ -368,7 +438,7 @@ if mejor_ruta:
       alpha=0.95,
   )
 
-# 3. Nodos diferenciados (Nodo A destacado en Índigo, resto en Blanco con borde pizarra)
+# Nodos
 colores_nodos = ["#4f46e5" if i == 0 else "#ffffff" for i in range(n)]
 bordes_nodos = ["#3730a3" if i == 0 else "#64748b" for i in range(n)]
 colores_texto = ["#ffffff" if i == 0 else "#0f172a" for i in range(n)]
@@ -396,7 +466,7 @@ for idx, nombre in enumerate(nombres):
       va="center",
   )
 
-# 4. Pesos en etiquetas nítidas con alto contraste
+# Pesos en aristas
 edge_labels = nx.get_edge_attributes(G, "weight")
 nx.draw_networkx_edge_labels(
     G,
@@ -420,7 +490,7 @@ plt.tight_layout()
 st.pyplot(fig)
 
 # -------------------------------------------------------------
-# TARJETA 3: RESULTADOS FACTORIALES Y MÉTRICAS
+# TARJETA 3: RESULTADOS FACTORIALES
 # -------------------------------------------------------------
 st.markdown(
     """
@@ -465,19 +535,33 @@ if mejor_ruta:
   )
 
 # -------------------------------------------------------------
-# TARJETA 4: MATRIZ DE ADYACENCIA
+# TARJETA 4: MATRIZ DE COSTOS
 # -------------------------------------------------------------
-with st.expander("▸ Ver Matriz de Costos / Adyacencia Ponderada"):
-  st.caption(
-      "Representación matricial formal del grafo no dirigido. '—' denota"
-      " ausencia de arista."
-  )
-  df_matriz = pd.DataFrame(
-      [
-          [val if val is not None else "—" for val in fila]
-          for fila in matriz
-      ],
-      index=nombres,
-      columns=nombres,
-  )
-  st.dataframe(df_matriz, use_container_width=True)
+st.markdown(
+    """
+<div class="card">
+    <div class="card-header">
+        <div class="step-badge">4</div>
+        <div class="card-title">Matriz de Costos / Adyacencia Ponderada</div>
+    </div>
+    <div class="card-desc">Modelado formal de costos directos entre vértices. El símbolo '—' denota ausencia de conexión directa.</div>
+</div>
+""",
+    unsafe_allow_html=True,
+)
+
+df_matriz = pd.DataFrame(
+    [[val if val is not None else "—" for val in fila] for fila in matriz],
+    index=nombres,
+    columns=nombres,
+)
+
+st.dataframe(df_matriz, use_container_width=True)
+
+csv_data = df_matriz.to_csv().encode("utf-8")
+st.download_button(
+    label="📥 Descargar Matriz de Costos (CSV)",
+    data=csv_data,
+    file_name="matriz_adyacencia_tsp.csv",
+    mime="text/csv",
+)
