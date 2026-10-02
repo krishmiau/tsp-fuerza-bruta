@@ -9,59 +9,62 @@ import streamlit as st
 
 # Configuración inicial de la página
 st.set_page_config(
-    page_title="TSP • Matemática Computacional",
-    page_icon="🗺️",
+    page_title="TSP • Neutral Elegance",
+    page_icon="⚜️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 # -------------------------------------------------------------
-# PALETA TIERRA / PERGAMINO (INSPIRADA EN LA IMAGEN DE REFERENCIA)
+# PALETA NEUTRAL ELEGANCE (APLICADA A TODA LA PÁGINA)
+# #FFDBBB | #CCBEB1 | #997E67 | #664930
 # -------------------------------------------------------------
 st.markdown(
     """
 <style>
-    /* 1. Fondo Global Tierra / Café Oscuro */
+    /* 1. Fondo Global y Tipografía Base */
     .stApp {
-        background-color: #3e3427;
-        color: #f5eedc !important;
+        background-color: #FFDBBB !important; /* Melocotón/Crema claro */
+        color: #664930 !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
-    /* 2. Jerarquía de texto */
-    h1, h2, h3, h4, p, span, label {
-        color: #f5eedc !important;
+    /* 2. Textos en General */
+    p, span, label, div, h1, h2, h3, h4 {
+        color: #664930 !important; /* Marrón profundo */
     }
-    
-    .terminal-kicker {
+
+    .editorial-kicker {
         font-family: 'Courier New', monospace;
         font-size: 11px;
         letter-spacing: 2px;
-        color: #e5be7a !important; /* Dorado arena */
+        color: #997E67 !important; /* Marrón medio */
         font-weight: 700;
         text-transform: uppercase;
+        margin-bottom: 2px;
     }
-    
+
     .main-title {
         font-family: 'Georgia', serif;
-        font-size: 32px;
+        font-size: 34px;
         font-weight: 800;
         letter-spacing: -0.5px;
-        color: #fff9ed !important;
+        color: #664930 !important;
         margin-top: 4px;
         margin-bottom: 8px;
     }
     .main-title span {
-        color: #e5be7a !important;
+        color: #997E67 !important;
     }
 
     .desc-text {
-        color: #dfd3bd !important;
+        color: #664930 !important;
         font-size: 14px;
         line-height: 1.5;
+        opacity: 0.9;
     }
 
-    /* 3. Píldoras / Insignias superiores */
+    /* 3. Insignias superiores */
     .stat-badge {
         display: inline-flex;
         align-items: center;
@@ -72,84 +75,112 @@ st.markdown(
         font-weight: 700;
         font-family: 'Courier New', monospace;
     }
-    .badge-gold {
-        background: #564939;
-        color: #f7d697 !important;
-        border: 1px solid #75634d;
+    .badge-primary {
+        background: #CCBEB1;
+        color: #664930 !important;
+        border: 1px solid #997E67;
     }
-    .badge-green {
-        background: #475a34;
-        color: #c9e89d !important;
-        border: 1px solid #5a7342;
-    }
-    .badge-teal {
-        background: #284c4f;
-        color: #9fe2ea !important;
-        border: 1px solid #36656a;
+    .badge-accent {
+        background: #997E67;
+        color: #FFDBBB !important;
+        border: 1px solid #664930;
     }
 
-    /* 4. Métricas */
+    /* 4. Métricas / KPIs */
     div[data-testid="stMetricValue"] {
-        color: #fff9ed !important;
+        color: #664930 !important;
         font-family: 'Courier New', monospace !important;
         font-size: 26px !important;
         font-weight: 800 !important;
     }
     div[data-testid="stMetricLabel"] p {
-        color: #c2b59d !important;
+        color: #997E67 !important;
         font-size: 11px !important;
         letter-spacing: 0.5px !important;
         text-transform: uppercase !important;
+        font-weight: 700 !important;
     }
 
-    /* 5. Barra Lateral y Controles */
+    /* 5. Barra Lateral (Sidebar) */
     section[data-testid="stSidebar"] {
-        background-color: #352c21 !important;
-        border-right: 1px solid #4a3e2f;
+        background-color: #CCBEB1 !important; /* Gris cálido */
+        border-right: 1px solid #997E67 !important;
     }
-    div[data-testid="stNumberInput"] input {
-        background-color: #4a3e30 !important;
-        color: #ffffff !important;
-        border: 1px solid #635340 !important;
-        border-radius: 6px !important;
+    section[data-testid="stSidebar"] * {
+        color: #664930 !important;
     }
 
-    /* 6. Botones principales (Verde tierra cálido) */
+    /* Inputs y Sliders */
+    div[data-testid="stNumberInput"] input {
+        background-color: #FFDBBB !important;
+        color: #664930 !important;
+        border: 1px solid #997E67 !important;
+        border-radius: 6px !important;
+        font-weight: 700 !important;
+    }
+    div[data-testid="stNumberInput"] button {
+        background-color: #997E67 !important;
+        color: #FFDBBB !important;
+    }
+
+    /* 6. Botones (Marrón profundo y detalles crema) */
     div.stButton > button {
-        background-color: #5a8731 !important;
-        color: #ffffff !important;
-        border: 1px solid #486d26 !important;
+        background-color: #664930 !important;
+        color: #FFDBBB !important;
+        border: 1px solid #664930 !important;
         border-radius: 6px !important;
         font-weight: 700 !important;
         padding: 8px 16px !important;
-        box-shadow: 0 3px 8px rgba(0,0,0, 0.25) !important;
+        box-shadow: 0 2px 6px rgba(102, 73, 48, 0.2) !important;
         transition: all 0.2s ease !important;
     }
     div.stButton > button:hover {
-        background-color: #6b9e3a !important;
+        background-color: #997E67 !important;
+        color: #FFDBBB !important;
+        border-color: #997E67 !important;
         transform: translateY(-1px);
     }
+    div.stButton > button p {
+        color: #FFDBBB !important;
+    }
 
-    /* Botón de exportación */
+    /* Botón de descarga CSV */
     div.stDownloadButton > button {
-        background-color: #1d7882 !important;
-        color: #ffffff !important;
-        border: 1px solid #145961 !important;
+        background-color: #997E67 !important;
+        color: #FFDBBB !important;
+        border: 1px solid #664930 !important;
         border-radius: 6px !important;
         font-weight: 700 !important;
+    }
+    div.stDownloadButton > button:hover {
+        background-color: #664930 !important;
+    }
+    div.stDownloadButton > button p {
+        color: #FFDBBB !important;
     }
 
     /* 7. Caja de Desglose de Cálculo */
     .calc-box {
-        background: #4a3f31;
-        border: 1px solid #635340;
-        border-left: 5px solid #5a8731;
+        background: #CCBEB1;
+        border: 1px solid #997E67;
+        border-left: 5px solid #664930;
         border-radius: 8px;
         padding: 14px 18px;
         font-family: 'Courier New', monospace;
         font-size: 13.5px;
-        color: #fff9ed;
+        color: #664930;
         margin: 10px 0;
+        box-shadow: 0 2px 5px rgba(102, 73, 48, 0.08);
+    }
+
+    /* Pestañas (Tabs) */
+    button[data-baseweb="tab"] {
+        color: #997E67 !important;
+        font-weight: 700 !important;
+    }
+    button[data-baseweb="tab"][aria-selected="true"] {
+        color: #664930 !important;
+        border-bottom-color: #664930 !important;
     }
 
     /* Ocultar barra flotante de tabla */
@@ -166,17 +197,17 @@ st.markdown(
 # -------------------------------------------------------------
 with st.sidebar:
   st.markdown(
-      '<div class="terminal-kicker">MODELO TOPOLÓGICO G = (V, E)</div>',
+      '<div class="editorial-kicker">MODELO TOPOLÓGICO G = (V, E)</div>',
       unsafe_allow_html=True,
   )
-  st.markdown("### Configura tu Mapa")
+  st.markdown("### Configuración")
 
   n = st.slider(
       "Ciudades / Vértices (n)",
       min_value=5,
       max_value=9,
       value=7,
-      help="Número de vértices en el grafo.",
+      help="Número de vértices del grafo ponderado.",
   )
   densidad = st.slider(
       "Densidad de Caminos (%)",
@@ -184,18 +215,18 @@ with st.sidebar:
       max_value=100,
       value=60,
       step=5,
-      help="Grado de interconexión entre las ciudades.",
+      help="Porcentaje de conexiones entre las ciudades.",
   )
 
   st.write("")
-  generar = st.button("🔨 Construir / Regenerar", use_container_width=True)
+  generar = st.button("⚜️ Construir / Regenerar", use_container_width=True)
 
   st.markdown("---")
   st.markdown(
       """
-    <div style="font-size: 12px; color: #c2b59d; line-height: 1.5;">
+    <div style="font-size: 12px; color: #664930; line-height: 1.5;">
         <b>Propiedad Combinatoria:</b><br/>
-        Fijando el origen en <code>A</code>, el espacio factorial equivale a <code>(n - 1)!</code> rutas evaluadas.
+        Fijando el vértice origen en <code>A</code>, el espacio factorial examinado es exactamente de <code>(n - 1)!</code> permutaciones.
     </div>
     """,
       unsafe_allow_html=True,
@@ -218,7 +249,7 @@ if "matriz" not in st.session_state or generar or len(st.session_state.matriz) !
     matriz[u][v] = peso
     matriz[v][u] = peso
 
-  # Caminos adicionales según densidad
+  # Conexiones adicionales según densidad
   for i in range(n):
     for j in range(i + 1, n):
       if matriz[i][j] is None and random.random() < (densidad / 100.0):
@@ -280,7 +311,7 @@ rutas_validas_ordenadas = sorted(rutas_validas, key=lambda x: x["costo"])
 c_head, c_badges = st.columns([2.6, 1.4])
 with c_head:
   st.markdown(
-      '<div class="terminal-kicker">MATEMÁTICA COMPUTACIONAL • TEORÍA DE'
+      '<div class="editorial-kicker">MATEMÁTICA COMPUTACIONAL • TEORÍA DE'
       " GRAFOS</div>",
       unsafe_allow_html=True,
   )
@@ -291,9 +322,9 @@ with c_head:
   )
   st.markdown(
       '<div class="desc-text">'
-      "Optimización en grafos ponderados <b>G = (V, E, W)</b>. Búsqueda"
-      " exhaustiva del ciclo hamiltoniano que minimiza la distancia total en el"
-      " espacio factorial."
+      "Optimización discreta sobre grafos ponderados <b>G = (V, E, W)</b>."
+      " Búsqueda exhaustiva del ciclo hamiltoniano que minimiza la distancia"
+      " total acumulada en el espacio factorial."
       "</div>",
       unsafe_allow_html=True,
   )
@@ -303,9 +334,9 @@ with c_badges:
   st.markdown(
       f"""
     <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
-        <span class="stat-badge badge-gold">Grafo G = (V, E)</span>
-        <span class="stat-badge badge-teal">Espacio: {len(evaluaciones):,} rutas</span>
-        <span class="stat-badge badge-green">Ciclos Factibles: {len(rutas_validas)}</span>
+        <span class="stat-badge badge-primary">Grafo G = (V, E)</span>
+        <span class="stat-badge badge-accent">Espacio: {len(evaluaciones):,} rutas</span>
+        <span class="stat-badge badge-primary">Ciclos Factibles: {len(rutas_validas)}</span>
     </div>
     """,
       unsafe_allow_html=True,
@@ -346,7 +377,7 @@ tab_sim, tab_matriz, tab_auditoria = st.tabs([
 ])
 
 # -------------------------------------------------------------
-# PESTAÑA 1: MAPA PERGAMINO Y EVALUACIÓN
+# PESTAÑA 1: MAPA Y EVALUACIÓN
 # -------------------------------------------------------------
 with tab_sim:
   col_graf, col_interac = st.columns([1.5, 1])
@@ -371,10 +402,10 @@ with tab_sim:
         st.markdown(
             f"""
                 <div class="calc-box">
-                    <span style="color:#c9e89d; font-weight:700;">★ RUTA ÓPTIMA:</span><br/>
+                    <span style="color:#664930; font-weight:800;">★ RUTA ÓPTIMA:</span><br/>
                     <b>{mejor_evaluacion['ruta_str']}</b><br/><br/>
-                    <span style="color:#dfd3bd;">Suma de pesos:</span><br/>
-                    {mejor_evaluacion['desglose']} = <b style="color:#c9e89d;">{mejor_costo} unidades</b>
+                    <span style="color:#997E67; font-weight:600;">Suma de pesos:</span><br/>
+                    {mejor_evaluacion['desglose']} = <b style="color:#664930;">{mejor_costo} unidades</b>
                 </div>
                 """,
             unsafe_allow_html=True,
@@ -394,12 +425,12 @@ with tab_sim:
         diferencia = seleccionada["costo"] - mejor_costo
         st.markdown(
             f"""
-                <div class="calc-box" style="border-left-color:#e5be7a;">
-                    <span style="color:#f7d697; font-weight:700;">RUTA #{idx_ruta} EVALUADA:</span><br/>
+                <div class="calc-box" style="border-left-color:#997E67;">
+                    <span style="color:#664930; font-weight:800;">RUTA #{idx_ruta} EVALUADA:</span><br/>
                     <b>{seleccionada['ruta_str']}</b><br/><br/>
-                    <span style="color:#dfd3bd;">Suma de pesos:</span><br/>
-                    {seleccionada['desglose']} = <b style="color:#f7d697;">{seleccionada['costo']} unidades</b><br/>
-                    <span style="color:#f87171; font-size:12px;">(+{diferencia} unidades sobre el óptimo)</span>
+                    <span style="color:#997E67; font-weight:600;">Suma de pesos:</span><br/>
+                    {seleccionada['desglose']} = <b style="color:#664930;">{seleccionada['costo']} unidades</b><br/>
+                    <span style="color:#997E67; font-size:12px; font-weight:bold;">(+{diferencia} unidades sobre el óptimo)</span>
                 </div>
                 """,
             unsafe_allow_html=True,
@@ -424,7 +455,7 @@ with tab_sim:
             """
       )
 
-  # Representación Gráfica con Estilo Pergamino / Tierra
+  # Representación Gráfica del Grafo
   with col_graf:
     G = nx.Graph()
     for nombre in nombres:
@@ -434,7 +465,7 @@ with tab_sim:
         if matriz[i][j] is not None:
           G.add_edge(nombres[i], nombres[j], weight=matriz[i][j])
 
-    # Posición poligonal asimétrica y regular (sin cruces caóticos)
+    # Posición poligonal asimétrica y regular
     pos = {}
     for i in range(n):
       angulo = (2 * math.pi * i / n) + (math.pi / 2)  # Nodo A en la cima
@@ -443,22 +474,22 @@ with tab_sim:
 
     fig, ax = plt.subplots(figsize=(6.8, 5.2), dpi=140)
 
-    # Fondo Pergamino cálido
-    fig.patch.set_facecolor("#f4eedb")
-    ax.set_facecolor("#f4eedb")
+    # Lienzo con color claro melocotón/crema (#FFDBBB)
+    fig.patch.set_facecolor("#FFDBBB")
+    ax.set_facecolor("#FFDBBB")
 
-    # 1. Caminos base (Gris/arena claro)
+    # 1. Caminos base (Gris cálido #CCBEB1)
     nx.draw_networkx_edges(
-        G, pos, ax=ax, edge_color="#c8bfa9", width=1.6, alpha=0.9
+        G, pos, ax=ax, edge_color="#CCBEB1", width=1.8, alpha=0.95
     )
 
-    # 2. Resaltar la ruta seleccionada
+    # 2. Resaltar la ruta seleccionada (Marrón café #664930 o Marrón topo #997E67)
     if ruta_a_dibujar:
       color_ruta = (
-          "#5a8731"
+          "#664930"
           if modo_vista == "⭐ Mejor Ruta Identificada (Óptimo)"
-          else "#c0533e"
-      )  # Verde bosque o Terracota
+          else "#997E67"
+      )
       aristas_resaltadas = [
           (nombres[ruta_a_dibujar[i]], nombres[ruta_a_dibujar[i + 1]])
           for i in range(n)
@@ -469,22 +500,22 @@ with tab_sim:
           edgelist=aristas_resaltadas,
           ax=ax,
           edge_color=color_ruta,
-          width=3.6,
-          alpha=0.95,
+          width=3.8,
+          alpha=0.98,
       )
 
-    # 3. Nodos estilo chocolate
+    # 3. Nodos en Marrón Café Profundo (#664930)
     nx.draw_networkx_nodes(
         G,
         pos,
         ax=ax,
-        node_color="#5a4632",
+        node_color="#664930",
         node_size=880,
-        edgecolors="#3d2f21",
-        linewidths=2.0,
+        edgecolors="#997E67",
+        linewidths=2.2,
     )
 
-    # Letras de los nodos en blanco nítido
+    # Letras de los nodos en Crema Claro (#FFDBBB) para alto contraste
     for idx, nombre in enumerate(nombres):
       ax.text(
           pos[nombre][0],
@@ -492,28 +523,28 @@ with tab_sim:
           nombre,
           fontsize=12,
           fontweight="bold",
-          color="#ffffff",
+          color="#FFDBBB",
           ha="center",
           va="center",
       )
 
-    # 4. Pesos en las aristas con fondo pergamino y SIN ROTACIÓN (rotate=False)
+    # 4. Pesos en las aristas (Horizontales sin rotar, fondo #CCBEB1, texto #664930)
     edge_labels = nx.get_edge_attributes(G, "weight")
     nx.draw_networkx_edge_labels(
         G,
         pos,
         edge_labels=edge_labels,
         ax=ax,
-        rotate=False,  # Fuerza la orientación horizontal
+        rotate=False,
         font_size=8.5,
-        font_color="#2b2319",
+        font_color="#664930",
         font_family="monospace",
         font_weight="bold",
         bbox=dict(
             boxstyle="round,pad=0.22",
-            facecolor="#f4eedb",
-            edgecolor="#c8bfa9",
-            linewidth=0.8,
+            facecolor="#FFDBBB",
+            edgecolor="#997E67",
+            linewidth=1.0,
             alpha=0.98,
         ),
     )
@@ -527,7 +558,7 @@ with tab_sim:
 # -------------------------------------------------------------
 with tab_matriz:
   st.markdown(
-      '<div style="font-size:14px; color:#dfd3bd; margin-bottom:12px;">Matriz'
+      '<div style="font-size:14px; color:#664930; margin-bottom:12px;">Matriz'
       " de adyacencia ponderada simétrica correspondiente al grafo <b>G = (V, E,"
       " W)</b>. El símbolo '—' denota ausencia de camino directo ($w ="
       " \\infty$).</div>",
@@ -558,7 +589,7 @@ with tab_matriz:
 with tab_auditoria:
   st.markdown("#### Condición Necesaria de Grado Mínimo")
   st.markdown(
-      '<div style="font-size:14px; color:#dfd3bd; margin-bottom:14px;">En'
+      '<div style="font-size:14px; color:#664930; margin-bottom:14px;">En'
       " teoría de grafos, para que un ciclo hamiltoniano exista es necesario que"
       " cada ciudad cuente con al menos dos caminos incidentes: <b>deg(v) ≥"
       " 2</b> (uno para entrar y otro para salir sin repetir).</div>",
