@@ -16,28 +16,33 @@ st.set_page_config(
 )
 
 # -------------------------------------------------------------
-# ESTILOS CSS CON CONTRASTE ESTRICTO Y PALETA PASTEL
+# ESTILOS CSS CON CONTRASTE ESTRICTO (NORDIC DARK SLATE / PASTEL)
 # -------------------------------------------------------------
 st.markdown(
     """
 <style>
+    /* 1. Fondo Global y Tipografía Base */
     .stApp {
-        background-color: #181826 !important;
-        color: #f1f5f9 !important;
+        background-color: #0f141c !important;
+        color: #e2e8f0 !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
+
+    /* 2. Textos sobre fondo oscuro: siempre claros y legibles */
     p, span, label, div, h1, h2, h3, h4 {
-        color: #f1f5f9 !important;
+        color: #e2e8f0 !important;
     }
+
     .editorial-kicker {
         font-family: 'Courier New', monospace;
         font-size: 11px;
         letter-spacing: 2px;
-        color: #a7f3d0 !important;
+        color: #5eead4 !important; /* Turquesa menta pastel */
         font-weight: 700;
         text-transform: uppercase;
         margin-bottom: 2px;
     }
+
     .main-title {
         font-family: 'Georgia', serif;
         font-size: 34px;
@@ -48,13 +53,16 @@ st.markdown(
         margin-bottom: 8px;
     }
     .main-title span {
-        color: #ddd6fe !important;
+        color: #c7d2fe !important; /* Lavanda hielo pastel */
     }
+
     .desc-text {
         color: #cbd5e1 !important;
         font-size: 14.5px;
         line-height: 1.6;
     }
+
+    /* 3. Píldoras con fondos pasteles claros: TEXTO OSCURO OBLIGATORIO */
     .stat-badge {
         display: inline-flex;
         align-items: center;
@@ -65,21 +73,23 @@ st.markdown(
         font-weight: 800;
         font-family: 'Courier New', monospace;
     }
-    .badge-mint {
-        background-color: #a7f3d0 !important;
-        color: #064e3b !important;
-        border: 1px solid #6ee7b7;
+    .badge-teal {
+        background-color: #99f6e4 !important; /* Pastel claro */
+        color: #042f2e !important;            /* Texto oscuro de alto contraste */
+        border: 1px solid #5eead4;
     }
     .badge-lavender {
-        background-color: #ddd6fe !important;
-        color: #3b0764 !important;
-        border: 1px solid #c4b5fd;
+        background-color: #c7d2fe !important; /* Pastel claro */
+        color: #1e1b4b !important;            /* Texto oscuro de alto contraste */
+        border: 1px solid #a5b4fc;
     }
-    .badge-peach {
-        background-color: #fed7aa !important;
-        color: #7c2d12 !important;
-        border: 1px solid #fdba74;
+    .badge-rose {
+        background-color: #fbcfe8 !important; /* Pastel claro */
+        color: #701a75 !important;            /* Texto oscuro de alto contraste */
+        border: 1px solid #f472b6;
     }
+
+    /* 4. Métricas sobre fondo oscuro: valores en blanco puro */
     div[data-testid="stMetricValue"] {
         color: #ffffff !important;
         font-family: 'Courier New', monospace !important;
@@ -93,55 +103,76 @@ st.markdown(
         text-transform: uppercase !important;
         font-weight: 700 !important;
     }
+
+    /* 5. Barra Lateral */
     section[data-testid="stSidebar"] {
-        background-color: #12121d !important;
-        border-right: 1px solid #2a2a3f !important;
+        background-color: #0b0f15 !important;
+        border-right: 1px solid #1f2937 !important;
     }
     section[data-testid="stSidebar"] * {
-        color: #f1f5f9 !important;
+        color: #e2e8f0 !important;
     }
+
+    /* Inputs numéricos */
     div[data-testid="stNumberInput"] input {
-        background-color: #222235 !important;
+        background-color: #17202e !important;
         color: #ffffff !important;
-        border: 1px solid #3f3f5a !important;
+        border: 1px solid #2d3b4e !important;
         border-radius: 6px !important;
         font-weight: 700 !important;
     }
+    div[data-testid="stNumberInput"] button {
+        background-color: #243042 !important;
+        color: #ffffff !important;
+    }
+
+    /* 6. Botones Primarios: Fondo pastel con texto oscuro */
     div.stButton > button {
-        background-color: #c4b5fd !important;
-        color: #1e1b4b !important;
+        background-color: #a5b4fc !important; /* Lavanda pastel suave */
+        color: #0f172a !important;            /* Texto oscuro */
         border: none !important;
         border-radius: 6px !important;
         font-weight: 800 !important;
         padding: 8px 16px !important;
+        box-shadow: 0 4px 12px rgba(165, 180, 252, 0.2) !important;
         transition: all 0.2s ease !important;
     }
     div.stButton > button:hover {
-        background-color: #ddd6fe !important;
-        color: #0f172a !important;
+        background-color: #c7d2fe !important;
+        color: #020617 !important;
         transform: translateY(-1px);
     }
     div.stButton > button p {
-        color: #1e1b4b !important;
+        color: #0f172a !important;
     }
+
+    /* Botón de descarga CSV */
     div.stDownloadButton > button {
-        background-color: #222235 !important;
-        color: #ddd6fe !important;
-        border: 1px solid #3f3f5a !important;
+        background-color: #17202e !important;
+        color: #c7d2fe !important;
+        border: 1px solid #2d3b4e !important;
         border-radius: 6px !important;
         font-weight: 700 !important;
     }
-    div.stDownloadButton > button p {
-        color: #ddd6fe !important;
+    div.stDownloadButton > button:hover {
+        background-color: #243042 !important;
+        color: #ffffff !important;
     }
+    div.stDownloadButton > button p {
+        color: #c7d2fe !important;
+    }
+
+    /* Pestañas (Tabs) */
     button[data-baseweb="tab"] {
         color: #94a3b8 !important;
         font-weight: 700 !important;
     }
     button[data-baseweb="tab"][aria-selected="true"] {
-        color: #ddd6fe !important;
-        border-bottom-color: #ddd6fe !important;
+        color: #c7d2fe !important;
+        border-bottom-color: #c7d2fe !important;
     }
+
+    /* Ocultar barra flotante de tabla */
     [data-testid="stElementToolbar"] {
         display: none !important;
     }
@@ -187,7 +218,7 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-# Inicializar estados de navegación
+# Inicializar estados de sesión
 if "puesto_ranking" not in st.session_state:
     st.session_state.puesto_ranking = 1
 if "paso_manual" not in st.session_state:
@@ -200,7 +231,7 @@ if "matriz" not in st.session_state or generar or len(st.session_state.matriz) !
     random.seed(int(time.time()) if generar else 42)
     matriz = [[None for _ in range(n)] for _ in range(n)]
 
-    # Ciclo base conexo con permutación
+    # Ciclo base garantizado con permutación
     orden_base = list(range(n))
     random.shuffle(orden_base)
     for i in range(n):
@@ -302,11 +333,10 @@ rutas_validas_ranking = sorted(rutas_validas, key=lambda x: x["costo"])
 total_pasos = len(evaluaciones)
 total_factibles = len(rutas_validas_ranking)
 
-# Asegurar que puesto_ranking esté en un rango válido
 if st.session_state.puesto_ranking > max(1, total_factibles):
     st.session_state.puesto_ranking = 1
 
-# Geometría del grafo
+# Geometría y estructura del grafo
 pos = {}
 for i in range(n):
     angulo = (2 * math.pi * i / n) + (math.pi / 2)
@@ -337,11 +367,13 @@ def interseccion_t(p1, p2, q1, q2):
 
 def dibujar_figura_grafo(ruta_indices=None, estado="BASE"):
     fig, ax = plt.subplots(figsize=(6.8, 5.0), dpi=130)
-    fig.patch.set_facecolor("#222235")
-    ax.set_facecolor("#222235")
+    fig.patch.set_facecolor("#131b26")
+    ax.set_facecolor("#131b26")
 
-    nx.draw_networkx_edges(G, pos, ax=ax, edge_color="#454562", width=1.6, alpha=0.85)
+    # Aristas base
+    nx.draw_networkx_edges(G, pos, ax=ax, edge_color="#2e3d52", width=1.6, alpha=0.85)
 
+    # Resaltado de trayectoria evaluada
     if ruta_indices:
         if estado == "INFACTIBLE":
             aristas_ok = []
@@ -354,19 +386,23 @@ def dibujar_figura_grafo(ruta_indices=None, estado="BASE"):
             if aristas_ok:
                 nx.draw_networkx_edges(G, pos, edgelist=aristas_ok, ax=ax, edge_color="#fca5a5", width=3.2, style="dashed", alpha=0.95)
         else:
-            color_arista = "#86efac" if estado == "MEJORA_RECORD" else "#fed7aa"
+            # Verde menta pastel para récord / Naranja melocotón pastel para otras factibles
+            color_arista = "#5eead4" if estado == "MEJORA_RECORD" else "#fed7aa"
             aristas_ciclo = [(nombres[ruta_indices[k]], nombres[ruta_indices[k + 1]]) for k in range(n)]
             nx.draw_networkx_edges(G, pos, edgelist=aristas_ciclo, ax=ax, edge_color=color_arista, width=3.8, alpha=0.98)
 
-    colores_nodos = ["#86efac" if i == 0 else "#ddd6fe" for i in range(n)]
-    bordes_nodos = ["#4ade80" if i == 0 else "#c4b5fd" for i in range(n)]
-    colores_letras = ["#064e3b" if i == 0 else "#0f172a" for i in range(n)]
+    # Nodos: Nodo A en Turquesa pastel / Otros en Lavanda hielo pastel
+    colores_nodos = ["#5eead4" if i == 0 else "#c7d2fe" for i in range(n)]
+    bordes_nodos = ["#2dd4bf" if i == 0 else "#a5b4fc" for i in range(n)]
+    # Textos oscuros de contraste estricto sobre fondo pastel claro
+    colores_letras = ["#042f2e" if i == 0 else "#090d16" for i in range(n)]
 
     nx.draw_networkx_nodes(G, pos, ax=ax, node_color=colores_nodos, node_size=880, edgecolors=bordes_nodos, linewidths=2.2)
 
     for idx, nombre in enumerate(nombres):
         ax.text(pos[nombre][0], pos[nombre][1], nombre, fontsize=12, fontweight="bold", color=colores_letras[idx], ha="center", va="center")
 
+    # Pesos sobre las rectas sin superposición (Fondo blanco nácar claro con texto negro carbón)
     for i, j, peso in aristas_info:
         p1 = pos[nombres[i]]
         p2 = pos[nombres[j]]
@@ -401,10 +437,10 @@ def dibujar_figura_grafo(ruta_indices=None, estado="BASE"):
             fontsize=8.5,
             fontweight="bold",
             fontfamily="monospace",
-            color="#0f172a",
+            color="#090d16",  # Texto oscuro legible
             ha="center",
             va="center",
-            bbox=dict(boxstyle="round,pad=0.22", facecolor="#f8fafc", edgecolor="#94a3b8", linewidth=0.9, alpha=0.98),
+            bbox=dict(boxstyle="round,pad=0.22", facecolor="#f1f5f9", edgecolor="#64748b", linewidth=0.9, alpha=0.98),
         )
 
     ax.axis("off")
@@ -431,9 +467,9 @@ with c_badges:
     st.markdown(
         f"""
         <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
-            <span class="stat-badge badge-mint">Grafo G = (V, E)</span>
+            <span class="stat-badge badge-teal">Grafo G = (V, E)</span>
             <span class="stat-badge badge-lavender">Espacio Único: {total_pasos:,} permutaciones</span>
-            <span class="stat-badge badge-peach">Ciclos Factibles: {len(rutas_validas)}</span>
+            <span class="stat-badge badge-rose">Ciclos Factibles: {len(rutas_validas)}</span>
         </div>
         """,
         unsafe_allow_html=True,
@@ -467,7 +503,7 @@ tab_ranking, tab_simulador, tab_contexto, tab_matriz, tab_auditoria = st.tabs([
 ])
 
 # -------------------------------------------------------------
-# PESTAÑA 1: RESULTADOS ORDENADOS CON BOTONES DE NAVEGACIÓN
+# PESTAÑA 1: RESULTADOS ORDENADOS (RANKING POR BOTONES)
 # -------------------------------------------------------------
 with tab_ranking:
     st.markdown("### Ranking de Ciclos Factibles (Menor a Mayor Costo)")
@@ -561,7 +597,7 @@ with tab_simulador:
 
     modo_ejecucion = st.radio(
         "Modo de control:",
-        ["🕹️️ Manual (Paso a paso)", "▶️ Automático (Animación en vivo)"],
+        ["🕹️ Manual (Paso a paso)", "▶️ Automático (Animación en vivo)"],
         horizontal=True,
     )
 
