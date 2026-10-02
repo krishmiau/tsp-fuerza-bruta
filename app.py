@@ -161,14 +161,14 @@ with st.sidebar:
         "Ciudades / Vértices (n)",
         min_value=5,
         max_value=8,
-        value=6,
+        value=7,
         help="Número de vértices del grafo ponderado.",
     )
     densidad = st.slider(
         "Densidad de Caminos (%)",
         min_value=30,
         max_value=100,
-        value=60,
+        value=75,
         step=5,
         help="Porcentaje de conexiones entre las ciudades.",
     )
@@ -187,6 +187,12 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
+# Inicializar estados de navegación
+if "puesto_ranking" not in st.session_state:
+    st.session_state.puesto_ranking = 1
+if "paso_manual" not in st.session_state:
+    st.session_state.paso_manual = 0
+
 # -------------------------------------------------------------
 # MODELADO MATRICIAL Y GENERACIÓN DEL GRAFO
 # -------------------------------------------------------------
@@ -194,7 +200,7 @@ if "matriz" not in st.session_state or generar or len(st.session_state.matriz) !
     random.seed(int(time.time()) if generar else 42)
     matriz = [[None for _ in range(n)] for _ in range(n)]
 
-    # Ciclo base conexo con orden barajado
+    # Ciclo base conexo con permutación
     orden_base = list(range(n))
     random.shuffle(orden_base)
     for i in range(n):
@@ -213,6 +219,7 @@ if "matriz" not in st.session_state or generar or len(st.session_state.matriz) !
                 matriz[j][i] = peso
 
     st.session_state.matriz = matriz
+    st.session_state.puesto_ranking = 1
     st.session_state.paso_manual = 0
 
 matriz = st.session_state.matriz
@@ -254,7 +261,6 @@ for perm in itertools.permutations(range(1, n)):
         costo += w
         desglose_terminos.append(f"{w}")
 
-    # Registro de comparaciones y descartes en orden secuencial
     if valida:
         if costo < record_historico:
             record_historico = costo
@@ -294,15 +300,19 @@ for perm in itertools.permutations(range(1, n)):
 rutas_validas = [r for r in evaluaciones if r["valida"]]
 rutas_validas_ranking = sorted(rutas_validas, key=lambda x: x["costo"])
 total_pasos = len(evaluaciones)
+total_factibles = len(rutas_validas_ranking)
 
-# Coordenadas poligonales regulares para los nodos
+# Asegurar que puesto_ranking esté en un rango válido
+if st.session_state.puesto_ranking > max(1, total_factibles):
+    st.session_state.puesto_ranking = 1
+
+# Geometría del grafo
 pos = {}
 for i in range(n):
     angulo = (2 * math.pi * i / n) + (math.pi / 2)
     radio = 1.0 + 0.04 * math.sin(i * 1.5)
     pos[nombres[i]] = (radio * math.cos(angulo), radio * math.sin(angulo))
 
-# Estructura del grafo en NetworkX
 G = nx.Graph()
 for nombre in nombres:
     G.add_node(nombre)
@@ -330,10 +340,8 @@ def dibujar_figura_grafo(ruta_indices=None, estado="BASE"):
     fig.patch.set_facecolor("#222235")
     ax.set_facecolor("#222235")
 
-    # Aristas base
     nx.draw_networkx_edges(G, pos, ax=ax, edge_color="#454562", width=1.6, alpha=0.85)
 
-    # Resaltado de trayectoria evaluada
     if ruta_indices:
         if estado == "INFACTIBLE":
             aristas_ok = []
@@ -350,7 +358,6 @@ def dibujar_figura_grafo(ruta_indices=None, estado="BASE"):
             aristas_ciclo = [(nombres[ruta_indices[k]], nombres[ruta_indices[k + 1]]) for k in range(n)]
             nx.draw_networkx_edges(G, pos, edgelist=aristas_ciclo, ax=ax, edge_color=color_arista, width=3.8, alpha=0.98)
 
-    # Nodos
     colores_nodos = ["#86efac" if i == 0 else "#ddd6fe" for i in range(n)]
     bordes_nodos = ["#4ade80" if i == 0 else "#c4b5fd" for i in range(n)]
     colores_letras = ["#064e3b" if i == 0 else "#0f172a" for i in range(n)]
@@ -360,7 +367,6 @@ def dibujar_figura_grafo(ruta_indices=None, estado="BASE"):
     for idx, nombre in enumerate(nombres):
         ax.text(pos[nombre][0], pos[nombre][1], nombre, fontsize=12, fontweight="bold", color=colores_letras[idx], ha="center", va="center")
 
-    # Pesos sobre las rectas sin superposición
     for i, j, peso in aristas_info:
         p1 = pos[nombres[i]]
         p2 = pos[nombres[j]]
@@ -452,16 +458,102 @@ st.write("")
 # -------------------------------------------------------------
 # PESTAÑAS PRINCIPALES
 # -------------------------------------------------------------
-tab_simulador, tab_ranking, tab_contexto, tab_matriz, tab_auditoria = st.tabs([
-    "🎬 Explorador Paso a Paso (Simulador)",
+tab_ranking, tab_simulador, tab_contexto, tab_matriz, tab_auditoria = st.tabs([
     "🏆 Resultados Ordenados (Ranking)",
+    "🎬 Explorador Paso a Paso (Simulador)",
     "📖 Contexto del Proyecto",
     "🔢 Matriz de Costos",
     "🛡️ Auditoría de Hamiltonicidad",
 ])
 
 # -------------------------------------------------------------
-# PESTAÑA 1: EXPLORADOR PASO A PASO (MANUAL Y AUTOMÁTICO)
+# PESTAÑA 1: RESULTADOS ORDENADOS CON BOTONES DE NAVEGACIÓN
+# -------------------------------------------------------------
+with tab_ranking:
+    st.markdown("### Ranking de Ciclos Factibles (Menor a Mayor Costo)")
+    st.markdown("Clasificación de todos los ciclos hamiltonianos conexos ordenados desde la solución óptima global.")
+
+    if total_factibles > 0:
+        col_r_graf, col_r_info = st.columns([1.35, 1.05])
+
+        with col_r_info:
+            st.markdown(f"**Navegación del Ranking ({total_factibles} ciclos encontrados):**")
+
+            # Botones de navegación directa
+            b_first, b_prev, b_next, b_last = st.columns(4)
+            with b_first:
+                if st.button("⏮️ Inicio", use_container_width=True):
+                    st.session_state.puesto_ranking = 1
+                    st.rerun()
+            with b_prev:
+                if st.button("◀️ Ant.", use_container_width=True):
+                    st.session_state.puesto_ranking = max(1, st.session_state.puesto_ranking - 1)
+                    st.rerun()
+            with b_next:
+                if st.button("Sig. ▶️", use_container_width=True):
+                    st.session_state.puesto_ranking = min(total_factibles, st.session_state.puesto_ranking + 1)
+                    st.rerun()
+            with b_last:
+                if st.button("Fin ⏭️", use_container_width=True):
+                    st.session_state.puesto_ranking = total_factibles
+                    st.rerun()
+
+            # Entrada numérica directa
+            nuevo_puesto = st.number_input(
+                f"Ir directo al puesto (1 al {total_factibles}):",
+                min_value=1,
+                max_value=total_factibles,
+                value=st.session_state.puesto_ranking,
+                step=1,
+            )
+            if nuevo_puesto != st.session_state.puesto_ranking:
+                st.session_state.puesto_ranking = nuevo_puesto
+                st.rerun()
+
+            idx_ranking = st.session_state.puesto_ranking
+            seleccion_ranking = rutas_validas_ranking[idx_ranking - 1]
+            diferencia_opt = seleccion_ranking["costo"] - mejor_costo_global
+
+            with st.container(border=True):
+                if idx_ranking == 1:
+                    st.markdown("**:green[★ RUTA ÓPTIMA GLOBAL (1er Puesto):]**")
+                else:
+                    st.markdown(f"**:orange[PUESTO #{idx_ranking} EN EL RANKING:]**")
+
+                st.markdown(f"**{seleccion_ranking['ruta_str']}**")
+                st.caption("Suma de pesos de la trayectoria:")
+                st.code(f"{seleccion_ranking['desglose']} = {seleccion_ranking['costo']} unidades", language="text")
+
+                if diferencia_opt == 0:
+                    st.caption(":green[*(Menor distancia posible del grafo)*]")
+                else:
+                    st.caption(f":red[*(+{diferencia_opt} unidades por encima de la ruta óptima)*]")
+
+        with col_r_graf:
+            fig_rank = dibujar_figura_grafo(
+                seleccion_ranking["ruta_indices"],
+                "MEJORA_RECORD" if idx_ranking == 1 else "DESCARTADA_COSTOSA",
+            )
+            st.pyplot(fig_rank)
+            plt.close(fig_rank)
+
+        st.markdown("---")
+        st.markdown("#### Tabla Comparativa de Soluciones Factibles")
+        df_ranking = pd.DataFrame([
+            {
+                "Puesto": i + 1,
+                "Ciclo Hamiltoniano": r["ruta_str"],
+                "Costo Total": r["costo"],
+                "Diferencia con Óptimo": f"+{r['costo'] - mejor_costo_global} u",
+            }
+            for i, r in enumerate(rutas_validas_ranking)
+        ])
+        st.dataframe(df_ranking, use_container_width=True, height=240)
+    else:
+        st.warning("El grafo generado no contiene ciclos hamiltonianos conexos con los parámetros actuales.")
+
+# -------------------------------------------------------------
+# PESTAÑA 2: EXPLORADOR PASO A PASO (SIMULADOR)
 # -------------------------------------------------------------
 with tab_simulador:
     st.markdown("### Simulación de Búsqueda, Comparaciones y Descartes")
@@ -469,17 +561,17 @@ with tab_simulador:
 
     modo_ejecucion = st.radio(
         "Modo de control:",
-        ["🕹️ Manual (Paso a paso)", "▶️ Automático (Animación en vivo)"],
+        ["🕹️️ Manual (Paso a paso)", "▶️ Automático (Animación en vivo)"],
         horizontal=True,
     )
 
     if modo_ejecucion == "🕹️ Manual (Paso a paso)":
         c_nav1, c_nav2, c_nav3 = st.columns([1, 1, 2])
         with c_nav1:
-            if st.button("⬅️ Anterior", use_container_width=True):
+            if st.button("⬅️ Anterior (Paso)", use_container_width=True):
                 st.session_state.paso_manual = max(0, st.session_state.paso_manual - 1)
         with c_nav2:
-            if st.button("Siguiente ➡️", use_container_width=True):
+            if st.button("Siguiente (Paso) ➡️", use_container_width=True):
                 st.session_state.paso_manual = min(total_pasos - 1, st.session_state.paso_manual + 1)
         with c_nav3:
             st.session_state.paso_manual = st.slider(
@@ -522,7 +614,6 @@ with tab_simulador:
                 st.markdown(f"**Récord Mínimo Vigente en este paso:** `{record_texto}`")
 
     else:
-        # Modo Automático con contenedor dinámico
         c_ctrl1, c_ctrl2 = st.columns([2, 1])
         with c_ctrl1:
             velocidad = st.slider("Velocidad de simulación (segundos por paso):", min_value=0.05, max_value=1.0, value=0.25, step=0.05)
@@ -566,7 +657,6 @@ with tab_simulador:
 
                 time.sleep(velocidad)
         else:
-            # Estado estático inicial si no se ha presionado Play
             primer_paso = evaluaciones[0]
             with contenedor_animacion.container():
                 c_g_auto, c_i_auto = st.columns([1.4, 1])
@@ -582,7 +672,6 @@ with tab_simulador:
                         st.markdown(f"**Primera ruta a evaluar:** `{primer_paso['ruta_str']}`")
                         st.caption(f"**Estado inicial:** {primer_paso['motivo']}")
 
-    # Historial completo de comparaciones y descartes en tabla interactiva
     st.markdown("---")
     st.markdown("#### 📋 Bitácora Completa de Comparaciones y Descartes")
     st.caption("Detalle cronológico de cada decisión tomada por la fuerza bruta durante la búsqueda exhaustiva:")
@@ -598,65 +687,6 @@ with tab_simulador:
         for item in evaluaciones
     ])
     st.dataframe(df_historial, use_container_width=True, height=260)
-
-# -------------------------------------------------------------
-# PESTAÑA 2: RESULTADOS ORDENADOS (RANKING)
-# -------------------------------------------------------------
-with tab_ranking:
-    st.markdown("### Ranking de Ciclos Factibles (Menor a Mayor Costo)")
-    st.markdown("Aquí se concentran únicamente los ciclos hamiltonianos conexos, clasificados por su costo total.")
-
-    if rutas_validas_ranking:
-        col_r_graf, col_r_info = st.columns([1.4, 1])
-
-        with col_r_info:
-            idx_ranking = st.slider(
-                "Posición en el ranking:",
-                min_value=1,
-                max_value=len(rutas_validas_ranking),
-                value=1,
-                help="1 = Ruta Óptima Global",
-            )
-            seleccion_ranking = rutas_validas_ranking[idx_ranking - 1]
-            diferencia_opt = seleccion_ranking["costo"] - mejor_costo_global
-
-            with st.container(border=True):
-                if idx_ranking == 1:
-                    st.markdown("**:green[★ RUTA ÓPTIMA GLOBAL (1er Puesto):]**")
-                else:
-                    st.markdown(f"**:orange[PUESTO #{idx_ranking} EN EL RANKING:]**")
-
-                st.markdown(f"**{seleccion_ranking['ruta_str']}**")
-                st.caption("Suma de pesos de la trayectoria:")
-                st.code(f"{seleccion_ranking['desglose']} = {seleccion_ranking['costo']} unidades", language="text")
-
-                if diferencia_opt == 0:
-                    st.caption(":green[*(Menor distancia posible del grafo)*]")
-                else:
-                    st.caption(f":red[*(+{diferencia_opt} unidades por encima de la ruta óptima)*]")
-
-        with col_r_graf:
-            fig_rank = dibujar_figura_grafo(
-                seleccion_ranking["ruta_indices"],
-                "MEJORA_RECORD" if idx_ranking == 1 else "DESCARTADA_COSTOSA",
-            )
-            st.pyplot(fig_rank)
-            plt.close(fig_rank)
-
-        st.markdown("---")
-        st.markdown("#### Tabla Comparativa de Soluciones Factibles")
-        df_ranking = pd.DataFrame([
-            {
-                "Puesto": i + 1,
-                "Ciclo Hamiltoniano": r["ruta_str"],
-                "Costo Total": r["costo"],
-                "Diferencia con Óptimo": f"+{r['costo'] - mejor_costo_global} u",
-            }
-            for i, r in enumerate(rutas_validas_ranking)
-        ])
-        st.dataframe(df_ranking, use_container_width=True, height=240)
-    else:
-        st.warning("El grafo generado no contiene ciclos hamiltonianos conexos con los parámetros actuales.")
 
 # -------------------------------------------------------------
 # PESTAÑA 3: CONTEXTO DEL PROYECTO
