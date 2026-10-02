@@ -7,38 +7,37 @@ import networkx as nx
 import pandas as pd
 import streamlit as st
 
-# Configuración inicial de la página
+# Configuración de página
 st.set_page_config(
-    page_title="TSP • Ink Wash",
-    page_icon="✒️",
+    page_title="TSP • Matemática Computacional",
+    page_icon="📐",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 # -------------------------------------------------------------
-# PALETA INK WASH (MONOCROMÁTICA MINIMALISTA)
-# #252525 | #CFCFCF | #7D7D7D | #545454
+# ESTILOS CSS CON CONTRASTE ESTRICTO Y PALETA PASTEL
 # -------------------------------------------------------------
 st.markdown(
     """
 <style>
-    /* 1. Fondo Global y Tipografía Base */
+    /* 1. Fondo Global y Tipografía */
     .stApp {
-        background-color: #252525 !important;
-        color: #CFCFCF !important;
+        background-color: #181826 !important;
+        color: #f1f5f9 !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
-    /* 2. Textos en General */
+    /* 2. Textos sobre fondo oscuro: siempre claros */
     p, span, label, div, h1, h2, h3, h4 {
-        color: #CFCFCF !important;
+        color: #f1f5f9 !important;
     }
 
     .editorial-kicker {
         font-family: 'Courier New', monospace;
         font-size: 11px;
         letter-spacing: 2px;
-        color: #7D7D7D !important;
+        color: #a7f3d0 !important; /* Menta pastel */
         font-weight: 700;
         text-transform: uppercase;
         margin-bottom: 2px;
@@ -49,22 +48,21 @@ st.markdown(
         font-size: 34px;
         font-weight: 800;
         letter-spacing: -0.5px;
-        color: #FFFFFF !important;
+        color: #ffffff !important;
         margin-top: 4px;
         margin-bottom: 8px;
     }
     .main-title span {
-        color: #7D7D7D !important;
+        color: #ddd6fe !important; /* Lavanda pastel */
     }
 
     .desc-text {
-        color: #CFCFCF !important;
-        font-size: 14px;
-        line-height: 1.5;
-        opacity: 0.9;
+        color: #cbd5e1 !important;
+        font-size: 14.5px;
+        line-height: 1.6;
     }
 
-    /* 3. Insignias superiores */
+    /* 3. Píldoras con fondos pasteles claros: TEXTO OSCURO */
     .stat-badge {
         display: inline-flex;
         align-items: center;
@@ -72,117 +70,119 @@ st.markdown(
         padding: 5px 12px;
         border-radius: 6px;
         font-size: 12px;
-        font-weight: 700;
+        font-weight: 800;
         font-family: 'Courier New', monospace;
     }
-    .badge-primary {
-        background: #545454;
-        color: #FFFFFF !important;
-        border: 1px solid #7D7D7D;
+    .badge-mint {
+        background-color: #a7f3d0 !important; /* Pastel claro */
+        color: #064e3b !important;            /* Texto verde oscuro legible */
+        border: 1px solid #6ee7b7;
     }
-    .badge-accent {
-        background: #252525;
-        color: #CFCFCF !important;
-        border: 1px solid #7D7D7D;
+    .badge-lavender {
+        background-color: #ddd6fe !important; /* Pastel claro */
+        color: #3b0764 !important;            /* Texto morado oscuro legible */
+        border: 1px solid #c4b5fd;
+    }
+    .badge-peach {
+        background-color: #fed7aa !important; /* Pastel claro */
+        color: #7c2d12 !important;            /* Texto café/naranja oscuro legible */
+        border: 1px solid #fdba74;
     }
 
-    /* 4. Métricas / KPIs */
+    /* 4. Métricas sobre fondo oscuro: valores en blanco nítido */
     div[data-testid="stMetricValue"] {
-        color: #FFFFFF !important;
+        color: #ffffff !important;
         font-family: 'Courier New', monospace !important;
         font-size: 26px !important;
         font-weight: 800 !important;
     }
     div[data-testid="stMetricLabel"] p {
-        color: #7D7D7D !important;
+        color: #94a3b8 !important;
         font-size: 11px !important;
         letter-spacing: 0.5px !important;
         text-transform: uppercase !important;
         font-weight: 700 !important;
     }
 
-    /* 5. Barra Lateral (Sidebar) */
+    /* 5. Barra Lateral */
     section[data-testid="stSidebar"] {
-        background-color: #1e1e1e !important;
-        border-right: 1px solid #545454 !important;
+        background-color: #12121d !important;
+        border-right: 1px solid #2a2a3f !important;
     }
     section[data-testid="stSidebar"] * {
-        color: #CFCFCF !important;
+        color: #f1f5f9 !important;
     }
 
-    /* Inputs y Sliders */
+    /* Inputs */
     div[data-testid="stNumberInput"] input {
-        background-color: #252525 !important;
-        color: #FFFFFF !important;
-        border: 1px solid #7D7D7D !important;
+        background-color: #222235 !important;
+        color: #ffffff !important;
+        border: 1px solid #3f3f5a !important;
         border-radius: 6px !important;
         font-weight: 700 !important;
     }
     div[data-testid="stNumberInput"] button {
-        background-color: #545454 !important;
-        color: #FFFFFF !important;
+        background-color: #313149 !important;
+        color: #ffffff !important;
     }
 
-    /* 6. Botones (Tinta / Grafito) */
+    /* 6. Botón Primario: Fondo pastel lavanda intenso con texto oscuro */
     div.stButton > button {
-        background-color: #545454 !important;
-        color: #FFFFFF !important;
-        border: 1px solid #7D7D7D !important;
+        background-color: #c4b5fd !important; /* Lavanda pastel */
+        color: #1e1b4b !important;            /* Texto índigo oscuro */
+        border: none !important;
         border-radius: 6px !important;
-        font-weight: 700 !important;
+        font-weight: 800 !important;
         padding: 8px 16px !important;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+        box-shadow: 0 4px 12px rgba(196, 181, 253, 0.25) !important;
         transition: all 0.2s ease !important;
     }
     div.stButton > button:hover {
-        background-color: #7D7D7D !important;
-        color: #FFFFFF !important;
-        border-color: #CFCFCF !important;
+        background-color: #ddd6fe !important;
+        color: #0f172a !important;
         transform: translateY(-1px);
     }
     div.stButton > button p {
-        color: #FFFFFF !important;
+        color: #1e1b4b !important;
     }
 
     /* Botón de descarga CSV */
     div.stDownloadButton > button {
-        background-color: #252525 !important;
-        color: #CFCFCF !important;
-        border: 1px solid #545454 !important;
+        background-color: #222235 !important;
+        color: #ddd6fe !important;
+        border: 1px solid #3f3f5a !important;
         border-radius: 6px !important;
         font-weight: 700 !important;
     }
     div.stDownloadButton > button:hover {
-        background-color: #545454 !important;
-        color: #FFFFFF !important;
-        border-color: #7D7D7D !important;
+        background-color: #2e2e46 !important;
+        color: #ffffff !important;
     }
     div.stDownloadButton > button p {
-        color: #CFCFCF !important;
+        color: #ddd6fe !important;
     }
 
     /* 7. Caja de Desglose de Cálculo */
     .calc-box {
-        background: #1e1e1e;
-        border: 1px solid #545454;
-        border-left: 5px solid #CFCFCF;
+        background: #222235;
+        border: 1px solid #34344d;
+        border-left: 5px solid #a7f3d0;
         border-radius: 8px;
         padding: 14px 18px;
         font-family: 'Courier New', monospace;
         font-size: 13.5px;
-        color: #CFCFCF;
+        color: #f1f5f9;
         margin: 10px 0;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     }
 
-    /* Pestañas (Tabs) */
+    /* Pestañas */
     button[data-baseweb="tab"] {
-        color: #7D7D7D !important;
+        color: #94a3b8 !important;
         font-weight: 700 !important;
     }
     button[data-baseweb="tab"][aria-selected="true"] {
-        color: #FFFFFF !important;
-        border-bottom-color: #CFCFCF !important;
+        color: #ddd6fe !important;
+        border-bottom-color: #ddd6fe !important;
     }
 
     /* Ocultar barra flotante de tabla */
@@ -221,14 +221,14 @@ with st.sidebar:
   )
 
   st.write("")
-  generar = st.button("✒️ Construir / Regenerar", use_container_width=True)
+  generar = st.button("📐 Construir / Regenerar", use_container_width=True)
 
   st.markdown("---")
   st.markdown(
       """
-    <div style="font-size: 12px; color: #7D7D7D; line-height: 1.5;">
+    <div style="font-size: 12px; color: #94a3b8; line-height: 1.5;">
         <b>Propiedad Combinatoria:</b><br/>
-        Fijando el vértice origen en <code>A</code>, el espacio factorial examinado es exactamente de <code>(n - 1)!</code> permutaciones.
+        Fijando el origen en <code>A</code>, el espacio factorial examinado es exactamente de <code>(n - 1)!</code> permutaciones.
     </div>
     """,
       unsafe_allow_html=True,
@@ -336,9 +336,9 @@ with c_badges:
   st.markdown(
       f"""
     <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
-        <span class="stat-badge badge-primary">Grafo G = (V, E)</span>
-        <span class="stat-badge badge-accent">Espacio: {len(evaluaciones):,} rutas</span>
-        <span class="stat-badge badge-primary">Ciclos Factibles: {len(rutas_validas)}</span>
+        <span class="stat-badge badge-mint">Grafo G = (V, E)</span>
+        <span class="stat-badge badge-lavender">Espacio: {len(evaluaciones):,} rutas</span>
+        <span class="stat-badge badge-peach">Ciclos Factibles: {len(rutas_validas)}</span>
     </div>
     """,
       unsafe_allow_html=True,
@@ -404,10 +404,10 @@ with tab_sim:
         st.markdown(
             f"""
                 <div class="calc-box">
-                    <span style="color:#FFFFFF; font-weight:800;">★ RUTA ÓPTIMA:</span><br/>
+                    <span style="color:#a7f3d0; font-weight:800;">★ RUTA ÓPTIMA:</span><br/>
                     <b>{mejor_evaluacion['ruta_str']}</b><br/><br/>
-                    <span style="color:#7D7D7D; font-weight:600;">Suma de pesos:</span><br/>
-                    {mejor_evaluacion['desglose']} = <b style="color:#FFFFFF;">{mejor_costo} unidades</b>
+                    <span style="color:#cbd5e1; font-weight:600;">Suma de pesos:</span><br/>
+                    {mejor_evaluacion['desglose']} = <b style="color:#a7f3d0;">{mejor_costo} unidades</b>
                 </div>
                 """,
             unsafe_allow_html=True,
@@ -427,12 +427,12 @@ with tab_sim:
         diferencia = seleccionada["costo"] - mejor_costo
         st.markdown(
             f"""
-                <div class="calc-box" style="border-left-color:#7D7D7D;">
-                    <span style="color:#CFCFCF; font-weight:800;">RUTA #{idx_ruta} EVALUADA:</span><br/>
+                <div class="calc-box" style="border-left-color:#fed7aa;">
+                    <span style="color:#fed7aa; font-weight:800;">RUTA #{idx_ruta} EVALUADA:</span><br/>
                     <b>{seleccionada['ruta_str']}</b><br/><br/>
-                    <span style="color:#7D7D7D; font-weight:600;">Suma de pesos:</span><br/>
-                    {seleccionada['desglose']} = <b style="color:#FFFFFF;">{seleccionada['costo']} unidades</b><br/>
-                    <span style="color:#7D7D7D; font-size:12px; font-weight:bold;">(+{diferencia} unidades sobre el óptimo)</span>
+                    <span style="color:#cbd5e1; font-weight:600;">Suma de pesos:</span><br/>
+                    {seleccionada['desglose']} = <b style="color:#fed7aa;">{seleccionada['costo']} unidades</b><br/>
+                    <span style="color:#fca5a5; font-size:12px; font-weight:bold;">(+{diferencia} unidades sobre el óptimo)</span>
                 </div>
                 """,
             unsafe_allow_html=True,
@@ -458,41 +458,41 @@ with tab_sim:
       )
 
   # -------------------------------------------------------------
-  # DIBUJADO DEL GRAFO CON DISPERSIÓN INTELIGENTE DE PESOS
+  # DIBUJADO DEL GRAFO CON POSICIONAMIENTO MATEMÁTICO SOBRE LA RECTA
   # -------------------------------------------------------------
   with col_graf:
     G = nx.Graph()
     for nombre in nombres:
       G.add_node(nombre)
-    lista_aristas = []
+    aristas_info = []
     for i in range(n):
       for j in range(i + 1, n):
         if matriz[i][j] is not None:
           G.add_edge(nombres[i], nombres[j], weight=matriz[i][j])
-          lista_aristas.append((i, j, matriz[i][j]))
+          aristas_info.append((i, j, matriz[i][j]))
 
     # Posición poligonal estructurada
     pos = {}
     for i in range(n):
-      angulo = (2 * math.pi * i / n) + (math.pi / 2)  # Nodo A arriba
-      radio = 1.0 + 0.05 * math.sin(i * 1.5)
+      angulo = (2 * math.pi * i / n) + (math.pi / 2)  # Nodo A en la cima
+      radio = 1.0 + 0.04 * math.sin(i * 1.5)
       pos[nombres[i]] = (radio * math.cos(angulo), radio * math.sin(angulo))
 
     fig, ax = plt.subplots(figsize=(6.8, 5.2), dpi=140)
-    fig.patch.set_facecolor("#252525")
-    ax.set_facecolor("#252525")
+    fig.patch.set_facecolor("#222235")
+    ax.set_facecolor("#222235")
 
-    # 1. Caminos base
+    # 1. Caminos base (Gris violáceo suave)
     nx.draw_networkx_edges(
-        G, pos, ax=ax, edge_color="#545454", width=1.6, alpha=0.85
+        G, pos, ax=ax, edge_color="#454562", width=1.6, alpha=0.85
     )
 
-    # 2. Resaltar la ruta activa
+    # 2. Resaltar la ruta seleccionada (Menta pastel o Durazno pastel)
     if ruta_a_dibujar:
       color_ruta = (
-          "#CFCFCF"
+          "#86efac"
           if modo_vista == "⭐ Mejor Ruta Identificada (Óptimo)"
-          else "#7D7D7D"
+          else "#fed7aa"
       )
       aristas_resaltadas = [
           (nombres[ruta_a_dibujar[i]], nombres[ruta_a_dibujar[i + 1]])
@@ -508,18 +508,21 @@ with tab_sim:
           alpha=0.98,
       )
 
-    # 3. Nodos en Gris Grafito (#545454)
+    # 3. Nodos en colores pasteles claros con TEXTO OSCURO (Contraste estricto)
+    colores_nodos = ["#86efac" if i == 0 else "#ddd6fe" for i in range(n)]
+    bordes_nodos = ["#4ade80" if i == 0 else "#c4b5fd" for i in range(n)]
+    colores_letras = ["#064e3b" if i == 0 else "#0f172a" for i in range(n)]
+
     nx.draw_networkx_nodes(
         G,
         pos,
         ax=ax,
-        node_color="#545454",
+        node_color=colores_nodos,
         node_size=880,
-        edgecolors="#7D7D7D",
-        linewidths=2.0,
+        edgecolors=bordes_nodos,
+        linewidths=2.2,
     )
 
-    # Letras de los nodos en Blanco (#FFFFFF)
     for idx, nombre in enumerate(nombres):
       ax.text(
           pos[nombre][0],
@@ -527,78 +530,74 @@ with tab_sim:
           nombre,
           fontsize=12,
           fontweight="bold",
-          color="#FFFFFF",
+          color=colores_letras[idx],
           ha="center",
           va="center",
       )
 
-    # 4. ACOMODO INTELIGENTE DE PESOS (EVITA SUPERPOSICIONES EN EL CENTRO)
-    # Calculamos posiciones individuales y resolvemos colisiones
-    posiciones_etiquetas = []
-    textos_etiquetas = []
+    # 4. FUNCIÓN PARA ENCONTRAR INTERSECCIÓN ENTRE DOS LÍNEAS
+    def interseccion_t(p1, p2, q1, q2):
+      """Retorna el parámetro t en [0,1] a lo largo del segmento p1->p2 si se corta con q1->q2."""
 
-    for i, j, peso in lista_aristas:
+      dx1, dy1 = p2[0] - p1[0], p2[1] - p1[1]
+      dx2, dy2 = q2[0] - q1[0], q2[1] - q1[1]
+      det = dx1 * dy2 - dy1 * dx2
+      if abs(det) < 1e-9:
+        return None  # Paralelas o colineales
+      t = ((q1[0] - p1[0]) * dy2 - (q1[1] - p1[1]) * dx2) / det
+      s = ((q1[0] - p1[0]) * dy1 - (q1[1] - p1[1]) * dx1) / det
+      if 0.05 < t < 0.95 and 0.05 < s < 0.95:
+        return t
+      return None
+
+    # Ubicación EXACTA de cada peso sobre su segmento evitando cruces
+    for i, j, peso in aristas_info:
       p1 = pos[nombres[i]]
       p2 = pos[nombres[j]]
 
-      # Distancia en el ciclo exterior
-      dist_ciclo = min((j - i) % n, (i - j) % n)
+      # Encontramos todos los puntos de cruce con otras aristas a lo largo de este segmento
+      cruces_t = []
+      for k, l, _ in aristas_info:
+        if (i, j) == (k, l) or len({i, j, k, l}) < 4:
+          continue  # Mismo segmento o comparten nodo extremo
+        q1 = pos[nombres[k]]
+        q2 = pos[nombres[l]]
+        t_cruce = interseccion_t(p1, p2, q1, q2)
+        if t_cruce is not None:
+          cruces_t.append(t_cruce)
 
-      if dist_ciclo == 1:
-        # Arista perimetral: punto medio empujado un 14% hacia afuera del centro (0, 0)
-        mx = (p1[0] + p2[0]) / 2.0
-        my = (p1[1] + p2[1]) / 2.0
-        norm = math.hypot(mx, my)
-        if norm > 0:
-          mx += (mx / norm) * 0.14
-          my += (my / norm) * 0.14
-      else:
-        # Cuerda transversal interior: alternamos su posición fuera del centro (0.32 o 0.68)
-        # Esto evita que converjan al punto central del grafo
-        t = 0.32 if (i + j) % 2 == 0 else 0.68
-        mx = (1 - t) * p1[0] + t * p2[0]
-        my = (1 - t) * p1[1] + t * p2[1]
+      # Puntos de frontera para que el peso no toque los círculos de los nodos extremos
+      puntos_t = sorted([0.22] + [t for t in cruces_t if 0.22 < t < 0.78] + [0.78])
 
-      posiciones_etiquetas.append([mx, my])
-      textos_etiquetas.append(str(peso))
+      # Buscamos el intervalo libre más grande a lo largo del segmento
+      max_espacio = -1.0
+      t_optimo = 0.50
 
-    # Repulsión iterativa anti-colisión entre etiquetas cercanas
-    for _ in range(25):
-      for a in range(len(posiciones_etiquetas)):
-        for b in range(a + 1, len(posiciones_etiquetas)):
-          dx = posiciones_etiquetas[b][0] - posiciones_etiquetas[a][0]
-          dy = posiciones_etiquetas[b][1] - posiciones_etiquetas[a][1]
-          dist = math.hypot(dx, dy)
-          radio_minimo = 0.22  # Umbral de distancia para que no se toquen
+      for idx_t in range(len(puntos_t) - 1):
+        espacio = puntos_t[idx_t + 1] - puntos_t[idx_t]
+        if espacio > max_espacio:
+          max_espacio = espacio
+          t_optimo = (puntos_t[idx_t] + puntos_t[idx_t + 1]) / 2.0
 
-          if dist < radio_minimo:
-            overlap = (radio_minimo - dist) / 2.0
-            if dist == 0:
-              dx, dy, dist = 0.01, 0.01, math.hypot(0.01, 0.01)
-            empuje_x = (dx / dist) * overlap
-            empuje_y = (dy / dist) * overlap
+      # Posición matemática ESTRICTAMENTE sobre la recta: (1 - t)*P1 + t*P2
+      x_peso = (1.0 - t_optimo) * p1[0] + t_optimo * p2[0]
+      y_peso = (1.0 - t_optimo) * p1[1] + t_optimo * p2[1]
 
-            posiciones_etiquetas[a][0] -= empuje_x
-            posiciones_etiquetas[a][1] -= empuje_y
-            posiciones_etiquetas[b][0] += empuje_x
-            posiciones_etiquetas[b][1] += empuje_y
-
-    # Renderizar cada etiqueta horizontal y despejada
-    for (x_lbl, y_lbl), txt in zip(posiciones_etiquetas, textos_etiquetas):
+      # Pastilla clara con texto oscuro: máximo contraste y 100% legible
       ax.text(
-          x_lbl,
-          y_lbl,
-          txt,
+          x_peso,
+          y_peso,
+          str(peso),
           fontsize=8.5,
           fontweight="bold",
           fontfamily="monospace",
-          color="#CFCFCF",
+          color="#0f172a",  # Texto oscuro legible sobre fondo claro
           ha="center",
           va="center",
           bbox=dict(
               boxstyle="round,pad=0.22",
-              facecolor="#252525",
-              edgecolor="#545454",
+              facecolor="#f8fafc",  # Blanco crema claro
+              edgecolor="#94a3b8",  # Borde grafito suave
               linewidth=0.9,
               alpha=0.98,
           ),
@@ -613,7 +612,7 @@ with tab_sim:
 # -------------------------------------------------------------
 with tab_matriz:
   st.markdown(
-      '<div style="font-size:14px; color:#CFCFCF; margin-bottom:12px;">Matriz'
+      '<div style="font-size:14px; color:#cbd5e1; margin-bottom:12px;">Matriz'
       " de adyacencia ponderada simétrica correspondiente al grafo <b>G = (V, E,"
       " W)</b>. El símbolo '—' denota ausencia de camino directo ($w ="
       " \\infty$).</div>",
@@ -644,7 +643,7 @@ with tab_matriz:
 with tab_auditoria:
   st.markdown("#### Condición Necesaria de Grado Mínimo")
   st.markdown(
-      '<div style="font-size:14px; color:#CFCFCF; margin-bottom:14px;">En'
+      '<div style="font-size:14px; color:#cbd5e1; margin-bottom:14px;">En'
       " teoría de grafos, para que un ciclo hamiltoniano exista es necesario que"
       " cada ciudad cuente con al menos dos caminos incidentes: <b>deg(v) ≥"
       " 2</b> (uno para entrar y otro para salir sin repetir).</div>",
