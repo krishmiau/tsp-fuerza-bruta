@@ -12,7 +12,7 @@ import streamlit as st
 # =============================================================================
 
 def generar_topologia(n, densidad, semilla=None):
-    """Genera la matriz de adyacencia ponderada simétrica garantizando conexidad."""
+    """Genera la matriz de adyacencia simétrica garantizando conexidad base."""
     if semilla is not None:
         random.seed(semilla)
         
@@ -51,7 +51,7 @@ def evaluar_espacio_muestral(n, matriz, nombres):
         ruta_tupla = (0,) + perm + (0,)
         ruta_reversa = (0,) + tuple(reversed(perm)) + (0,)
 
-        # Filtro de grafo no dirigido: descarta el ciclo en reversa exacta
+        # Descarte de simetría en grafos no dirigidos (reverso idéntico)
         if ruta_reversa in ciclos_vistos:
             continue
         ciclos_vistos.add(ruta_tupla)
@@ -62,7 +62,7 @@ def evaluar_espacio_muestral(n, matriz, nombres):
         desglose_terminos = []
         arista_rota = None
 
-        # Verificación arista por arista
+        # Verificación tramo por tramo
         for k in range(n):
             u, v = ruta[k], ruta[k + 1]
             w = matriz[u][v]
@@ -74,7 +74,7 @@ def evaluar_espacio_muestral(n, matriz, nombres):
             costo += w
             desglose_terminos.append(f"{w}")
 
-        # Análisis comparativo secuencial
+        # Análisis comparativo paso a paso
         if valida:
             if costo < record_historico:
                 record_historico = costo
@@ -118,7 +118,7 @@ def evaluar_espacio_muestral(n, matriz, nombres):
 
 
 def _interseccion_t(p1, p2, q1, q2):
-    """Calcula el factor de corte t en [0,1] para dos segmentos de recta."""
+    """Calcula el factor paramétrico t en [0,1] para dos segmentos de recta."""
     dx1, dy1 = p2[0] - p1[0], p2[1] - p1[1]
     dx2, dy2 = q2[0] - q1[0], q2[1] - q1[1]
     det = dx1 * dy2 - dy1 * dx2
@@ -130,8 +130,7 @@ def _interseccion_t(p1, p2, q1, q2):
 
 
 def generar_figura_grafo(n, nombres, matriz, ruta_indices=None, estado="BASE"):
-    """Construye el lienzo Matplotlib del grafo con pesos alineados sin superposición."""
-    # Distribución en polígono regular con asimetría sutil
+    """Construye el lienzo Matplotlib del grafo con la paleta original (#222235)."""
     pos = {}
     for i in range(n):
         angulo = (2 * math.pi * i / n) + (math.pi / 2)
@@ -150,11 +149,11 @@ def generar_figura_grafo(n, nombres, matriz, ruta_indices=None, estado="BASE"):
                 aristas_info.append((i, j, matriz[i][j]))
 
     fig, ax = plt.subplots(figsize=(6.8, 5.0), dpi=130)
-    fig.patch.set_facecolor("#131b26")
-    ax.set_facecolor("#131b26")
+    fig.patch.set_facecolor("#222235")
+    ax.set_facecolor("#222235")
 
     # 1. Aristas base
-    nx.draw_networkx_edges(G, pos, ax=ax, edge_color="#2e3d52", width=1.6, alpha=0.85)
+    nx.draw_networkx_edges(G, pos, ax=ax, edge_color="#454562", width=1.6, alpha=0.85)
 
     # 2. Resaltar ciclo evaluado
     if ruta_indices:
@@ -169,21 +168,21 @@ def generar_figura_grafo(n, nombres, matriz, ruta_indices=None, estado="BASE"):
             if aristas_ok:
                 nx.draw_networkx_edges(G, pos, edgelist=aristas_ok, ax=ax, edge_color="#fca5a5", width=3.2, style="dashed", alpha=0.95)
         else:
-            color_arista = "#5eead4" if estado == "MEJORA_RECORD" else "#fed7aa"
+            color_arista = "#86efac" if estado == "MEJORA_RECORD" else "#fed7aa"
             aristas_ciclo = [(nombres[ruta_indices[k]], nombres[ruta_indices[k + 1]]) for k in range(n)]
             nx.draw_networkx_edges(G, pos, edgelist=aristas_ciclo, ax=ax, edge_color=color_arista, width=3.8, alpha=0.98)
 
-    # 3. Nodos: fondo pastel con texto oscuro
-    colores_nodos = ["#5eead4" if i == 0 else "#c7d2fe" for i in range(n)]
-    bordes_nodos = ["#2dd4bf" if i == 0 else "#a5b4fc" for i in range(n)]
-    colores_letras = ["#042f2e" if i == 0 else "#090d16" for i in range(n)]
+    # 3. Nodos: A en menta pastel, demás en lavanda
+    colores_nodos = ["#86efac" if i == 0 else "#ddd6fe" for i in range(n)]
+    bordes_nodos = ["#4ade80" if i == 0 else "#c4b5fd" for i in range(n)]
+    colores_letras = ["#064e3b" if i == 0 else "#0f172a" for i in range(n)]
 
     nx.draw_networkx_nodes(G, pos, ax=ax, node_color=colores_nodos, node_size=880, edgecolors=bordes_nodos, linewidths=2.2)
 
     for idx, nombre in enumerate(nombres):
         ax.text(pos[nombre][0], pos[nombre][1], nombre, fontsize=12, fontweight="bold", color=colores_letras[idx], ha="center", va="center")
 
-    # 4. Cálculo de posición despejada sobre la recta para cada etiqueta de peso
+    # 4. Cálculo de posición despejada sobre la recta para cada peso
     for i, j, peso in aristas_info:
         p1, p2 = pos[nombres[i]], pos[nombres[j]]
 
@@ -211,8 +210,8 @@ def generar_figura_grafo(n, nombres, matriz, ruta_indices=None, estado="BASE"):
         ax.text(
             x_peso, y_peso, str(peso),
             fontsize=8.5, fontweight="bold", fontfamily="monospace",
-            color="#090d16", ha="center", va="center",
-            bbox=dict(boxstyle="round,pad=0.22", facecolor="#f1f5f9", edgecolor="#64748b", linewidth=0.9, alpha=0.98),
+            color="#0f172a", ha="center", va="center",
+            bbox=dict(boxstyle="round,pad=0.22", facecolor="#f8fafc", edgecolor="#94a3b8", linewidth=0.9, alpha=0.98),
         )
 
     ax.axis("off")
@@ -231,47 +230,144 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Estilos CSS generales (Dark slate / Pasteles con contraste riguroso)
+# Estilos CSS de tu paleta original
 st.markdown(
     """
 <style>
-    .stApp { background-color: #0f141c !important; color: #e2e8f0 !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    p, span, label, div, h1, h2, h3, h4 { color: #e2e8f0 !important; }
-    .editorial-kicker { font-family: 'Courier New', monospace; font-size: 11px; letter-spacing: 2px; color: #5eead4 !important; font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
-    .main-title { font-family: 'Georgia', serif; font-size: 34px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff !important; margin-top: 4px; margin-bottom: 8px; }
-    .main-title span { color: #c7d2fe !important; }
-    .desc-text { color: #cbd5e1 !important; font-size: 14.5px; line-height: 1.6; }
-    
-    .stat-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 800; font-family: 'Courier New', monospace; }
-    .badge-teal { background-color: #99f6e4 !important; color: #042f2e !important; border: 1px solid #5eead4; }
-    .badge-lavender { background-color: #c7d2fe !important; color: #1e1b4b !important; border: 1px solid #a5b4fc; }
-    .badge-rose { background-color: #fbcfe8 !important; color: #701a75 !important; border: 1px solid #f472b6; }
-    
-    div[data-testid="stMetricValue"] { color: #ffffff !important; font-family: 'Courier New', monospace !important; font-size: 26px !important; font-weight: 800 !important; }
-    div[data-testid="stMetricLabel"] p { color: #94a3b8 !important; font-size: 11px !important; letter-spacing: 0.5px !important; text-transform: uppercase !important; font-weight: 700 !important; }
-    
-    section[data-testid="stSidebar"] { background-color: #0b0f15 !important; border-right: 1px solid #1f2937 !important; }
-    section[data-testid="stSidebar"] * { color: #e2e8f0 !important; }
-    
-    div[data-testid="stNumberInput"] input { background-color: #17202e !important; color: #ffffff !important; border: 1px solid #2d3b4e !important; border-radius: 6px !important; font-weight: 700 !important; }
-    div[data-testid="stNumberInput"] button { background-color: #243042 !important; color: #ffffff !important; }
-    
-    div.stButton > button { background-color: #a5b4fc !important; color: #0f172a !important; border: none !important; border-radius: 6px !important; font-weight: 800 !important; padding: 8px 16px !important; transition: all 0.2s ease !important; }
-    div.stButton > button:hover { background-color: #c7d2fe !important; color: #020617 !important; transform: translateY(-1px); }
-    div.stButton > button p { color: #0f172a !important; }
-    
-    div.stDownloadButton > button { background-color: #17202e !important; color: #c7d2fe !important; border: 1px solid #2d3b4e !important; border-radius: 6px !important; font-weight: 700 !important; }
-    div.stDownloadButton > button p { color: #c7d2fe !important; }
-    
-    button[data-baseweb="tab"] { color: #94a3b8 !important; font-weight: 700 !important; }
-    button[data-baseweb="tab"][aria-selected="true"] { color: #c7d2fe !important; border-bottom-color: #c7d2fe !important; }
-    [data-testid="stElementToolbar"] { display: none !important; }
+    .stApp {
+        background-color: #181826 !important;
+        color: #f1f5f9 !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    p, span, label, div, h1, h2, h3, h4 {
+        color: #f1f5f9 !important;
+    }
+    .editorial-kicker {
+        font-family: 'Courier New', monospace;
+        font-size: 11px;
+        letter-spacing: 2px;
+        color: #a7f3d0 !important;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+    }
+    .main-title {
+        font-family: 'Georgia', serif;
+        font-size: 34px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        color: #ffffff !important;
+        margin-top: 4px;
+        margin-bottom: 8px;
+    }
+    .main-title span {
+        color: #ddd6fe !important;
+    }
+    .desc-text {
+        color: #cbd5e1 !important;
+        font-size: 14.5px;
+        line-height: 1.6;
+    }
+    .stat-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 800;
+        font-family: 'Courier New', monospace;
+    }
+    .badge-mint {
+        background-color: #a7f3d0 !important;
+        color: #064e3b !important;
+        border: 1px solid #6ee7b7;
+    }
+    .badge-lavender {
+        background-color: #ddd6fe !important;
+        color: #3b0764 !important;
+        border: 1px solid #c4b5fd;
+    }
+    .badge-peach {
+        background-color: #fed7aa !important;
+        color: #7c2d12 !important;
+        border: 1px solid #fdba74;
+    }
+    div[data-testid="stMetricValue"] {
+        color: #ffffff !important;
+        font-family: 'Courier New', monospace !important;
+        font-size: 26px !important;
+        font-weight: 800 !important;
+    }
+    div[data-testid="stMetricLabel"] p {
+        color: #94a3b8 !important;
+        font-size: 11px !important;
+        letter-spacing: 0.5px !important;
+        text-transform: uppercase !important;
+        font-weight: 700 !important;
+    }
+    section[data-testid="stSidebar"] {
+        background-color: #12121d !important;
+        border-right: 1px solid #2a2a3f !important;
+    }
+    section[data-testid="stSidebar"] * {
+        color: #f1f5f9 !important;
+    }
+    div[data-testid="stNumberInput"] input {
+        background-color: #222235 !important;
+        color: #ffffff !important;
+        border: 1px solid #3f3f5a !important;
+        border-radius: 6px !important;
+        font-weight: 700 !important;
+    }
+    div[data-testid="stNumberInput"] button {
+        background-color: #313149 !important;
+        color: #ffffff !important;
+    }
+    div.stButton > button {
+        background-color: #c4b5fd !important;
+        color: #1e1b4b !important;
+        border: none !important;
+        border-radius: 6px !important;
+        font-weight: 800 !important;
+        padding: 8px 16px !important;
+        transition: all 0.2s ease !important;
+    }
+    div.stButton > button:hover {
+        background-color: #ddd6fe !important;
+        color: #0f172a !important;
+        transform: translateY(-1px);
+    }
+    div.stButton > button p {
+        color: #1e1b4b !important;
+    }
+    div.stDownloadButton > button {
+        background-color: #222235 !important;
+        color: #ddd6fe !important;
+        border: 1px solid #3f3f5a !important;
+        border-radius: 6px !important;
+        font-weight: 700 !important;
+    }
+    div.stDownloadButton > button p {
+        color: #ddd6fe !important;
+    }
+    button[data-baseweb="tab"] {
+        color: #94a3b8 !important;
+        font-weight: 700 !important;
+    }
+    button[data-baseweb="tab"][aria-selected="true"] {
+        color: #ddd6fe !important;
+        border-bottom-color: #ddd6fe !important;
+    }
+    [data-testid="stElementToolbar"] {
+        display: none !important;
+    }
 </style>
 """,
     unsafe_allow_html=True,
 )
 
-# Inicialización de variables en Session State
+# Inicialización del Session State
 if "puesto_ranking" not in st.session_state:
     st.session_state.puesto_ranking = 1
 if "paso_manual" not in st.session_state:
@@ -281,7 +377,7 @@ if "sim_activa" not in st.session_state:
 if "paso_auto" not in st.session_state:
     st.session_state.paso_auto = 0
 
-# Configuración en la Barra Lateral
+# Barra Lateral
 with st.sidebar:
     st.markdown('<div class="editorial-kicker">MODELO TOPOLÓGICO G = (V, E)</div>', unsafe_allow_html=True)
     st.markdown("### Configuración")
@@ -303,7 +399,7 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-# Control de regeneración del backend
+# Control de regeneración
 if "matriz" not in st.session_state or generar or len(st.session_state.matriz) != n:
     semilla = int(time.time()) if generar else 42
     st.session_state.matriz = generar_topologia(n, densidad, semilla)
@@ -341,9 +437,9 @@ with c_badges:
     st.markdown(
         f"""
         <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
-            <span class="stat-badge badge-teal">Grafo G = (V, E)</span>
+            <span class="stat-badge badge-mint">Grafo G = (V, E)</span>
             <span class="stat-badge badge-lavender">Espacio Único: {total_pasos:,} permutaciones</span>
-            <span class="stat-badge badge-rose">Ciclos Factibles: {total_factibles}</span>
+            <span class="stat-badge badge-peach">Ciclos Factibles: {total_factibles}</span>
         </div>
         """,
         unsafe_allow_html=True,
@@ -352,7 +448,7 @@ with c_badges:
 st.latex(r"\min_{\pi} \quad C(\pi) = \sum_{i=0}^{n-1} w(v_i, v_{i+1})")
 st.write("")
 
-# KPIs superiores
+# Métricas superiores
 kpi1, kpi2, kpi3, kpi4 = st.columns(4)
 with kpi1:
     st.metric("Vértices |V|", f"{n} Nodos")
@@ -366,7 +462,7 @@ with kpi4:
 
 st.write("")
 
-# Navegación por pestañas
+# Pestañas principales
 tab_ranking, tab_simulador, tab_contexto, tab_matriz, tab_auditoria = st.tabs([
     "🏆 Resultados Ordenados (Ranking)",
     "🎬 Explorador Paso a Paso (Simulador)",
@@ -398,7 +494,7 @@ with tab_ranking:
                     st.session_state.puesto_ranking = max(1, st.session_state.puesto_ranking - 1)
                     st.rerun()
             with b_next:
-                if st.button("Sig. ▶️", use_container_width=True):
+                if st.button("Sig. ▶️️", use_container_width=True):
                     st.session_state.puesto_ranking = min(total_factibles, st.session_state.puesto_ranking + 1)
                     st.rerun()
             with b_last:
@@ -476,7 +572,7 @@ with tab_simulador:
     if modo_ejecucion == "🕹️ Manual (Paso a paso)":
         c_nav1, c_nav2, c_nav3 = st.columns([1, 1, 2])
         with c_nav1:
-            if st.button("⬅️️ Anterior (Paso)", use_container_width=True):
+            if st.button("⬅️ Anterior (Paso)", use_container_width=True):
                 st.session_state.paso_manual = max(0, st.session_state.paso_manual - 1)
         with c_nav2:
             if st.button("Siguiente (Paso) ➡️", use_container_width=True):
@@ -522,7 +618,7 @@ with tab_simulador:
                 st.markdown(f"**Récord Mínimo Vigente en este paso:** `{record_texto}`")
 
     else:
-        # Modo Automático con Reproducción, Pausa y Reinicio
+        # Modo Automático con Pausa y Reinicio
         velocidad = st.slider("Velocidad de simulación (segundos por paso):", min_value=0.05, max_value=1.0, value=0.25, step=0.05)
 
         c_play, c_pause, c_reset = st.columns(3)
@@ -535,7 +631,7 @@ with tab_simulador:
                 st.session_state.sim_activa = False
                 st.rerun()
         with c_reset:
-            # Texto corregido sin redundancia
+            # Botón conciso
             if st.button("⏮️ Reiniciar", use_container_width=True):
                 st.session_state.sim_activa = False
                 st.session_state.paso_auto = 0
