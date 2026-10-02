@@ -443,7 +443,7 @@ with tab_sim:
 
     fig, ax = plt.subplots(figsize=(6.8, 5.2), dpi=140)
 
-    # Fondo Pergamino cálido como en la imagen de referencia
+    # Fondo Pergamino cálido
     fig.patch.set_facecolor("#f4eedb")
     ax.set_facecolor("#f4eedb")
 
@@ -473,7 +473,7 @@ with tab_sim:
           alpha=0.95,
       )
 
-    # 3. Nodos estilo chocolate de la referencia
+    # 3. Nodos estilo chocolate
     nx.draw_networkx_nodes(
         G,
         pos,
@@ -497,23 +497,24 @@ with tab_sim:
           va="center",
       )
 
-    # 4. Pesos en las aristas con fondo pergamino
+    # 4. Pesos en las aristas con fondo pergamino y SIN ROTACIÓN (rotate=False)
     edge_labels = nx.get_edge_attributes(G, "weight")
     nx.draw_networkx_edge_labels(
         G,
         pos,
         edge_labels=edge_labels,
         ax=ax,
-        font_size=8,
+        rotate=False,  # Fuerza la orientación horizontal
+        font_size=8.5,
         font_color="#2b2319",
         font_family="monospace",
         font_weight="bold",
         bbox=dict(
-            boxstyle="round,pad=0.2",
+            boxstyle="round,pad=0.22",
             facecolor="#f4eedb",
             edgecolor="#c8bfa9",
             linewidth=0.8,
-            alpha=0.95,
+            alpha=0.98,
         ),
     )
 
