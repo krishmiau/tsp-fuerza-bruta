@@ -7,7 +7,7 @@ import networkx as nx
 import pandas as pd
 import streamlit as st
 
-# Configuración de página
+# Configuración inicial de la página
 st.set_page_config(
     page_title="TSP • Matemática Computacional",
     page_icon="📐",
@@ -154,382 +154,201 @@ st.markdown(
 # SIDEBAR: PARÁMETROS DEL GRAFO
 # -------------------------------------------------------------
 with st.sidebar:
-  st.markdown(
-      '<div class="editorial-kicker">MODELO TOPOLÓGICO G = (V, E)</div>',
-      unsafe_allow_html=True,
-  )
-  st.markdown("### Configuración")
+    st.markdown('<div class="editorial-kicker">MODELO TOPOLÓGICO G = (V, E)</div>', unsafe_allow_html=True)
+    st.markdown("### Configuración")
 
-  n = st.slider(
-      "Ciudades / Vértices (n)",
-      min_value=5,
-      max_value=8,
-      value=6,
-      help="Número de vértices del grafo ponderado.",
-  )
-  densidad = st.slider(
-      "Densidad de Caminos (%)",
-      min_value=30,
-      max_value=100,
-      value=60,
-      step=5,
-      help="Porcentaje de conexiones entre las ciudades.",
-  )
+    n = st.slider(
+        "Ciudades / Vértices (n)",
+        min_value=5,
+        max_value=8,
+        value=6,
+        help="Número de vértices del grafo ponderado.",
+    )
+    densidad = st.slider(
+        "Densidad de Caminos (%)",
+        min_value=30,
+        max_value=100,
+        value=60,
+        step=5,
+        help="Porcentaje de conexiones entre las ciudades.",
+    )
 
-  st.write("")
-  generar = st.button("📐 Construir / Regenerar", use_container_width=True)
+    st.write("")
+    generar = st.button("📐 Construir / Regenerar", use_container_width=True)
 
-  st.markdown("---")
-  st.markdown(
-      """
-    <div style="font-size: 12px; color: #94a3b8; line-height: 1.5;">
-        <b>Propiedad Combinatoria:</b><br/>
-        Al descartar reflexiones reversas en grafos no dirigidos, el espacio de ciclos hamiltonianos únicos es de <code>(n - 1)! / 2</code>.
-    </div>
-    """,
-      unsafe_allow_html=True,
-  )
+    st.markdown("---")
+    st.markdown(
+        """
+        <div style="font-size: 12px; color: #94a3b8; line-height: 1.5;">
+            <b>Propiedad Combinatoria:</b><br/>
+            Al descartar reflexiones reversas en grafos no dirigidos, el espacio de ciclos hamiltonianos únicos es de <code>(n - 1)! / 2</code>.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 # -------------------------------------------------------------
 # MODELADO MATRICIAL Y GENERACIÓN DEL GRAFO
 # -------------------------------------------------------------
 if "matriz" not in st.session_state or generar or len(st.session_state.matriz) != n:
-  random.seed(int(time.time()) if generar else 42)
-  matriz = [[None for _ in range(n)] for _ in range(n)]
+    random.seed(int(time.time()) if generar else 42)
+    matriz = [[None for _ in range(n)] for _ in range(n)]
 
-  # Ciclo base garantizado con permutación
-  orden_base = list(range(n))
-  random.shuffle(orden_base)
-  for i in range(n):
-    u = orden_base[i]
-    v = orden_base[(i + 1) % n]
-    peso = random.randint(7, 35)
-    matriz[u][v] = peso
-    matriz[v][u] = peso
+    # Ciclo base conexo con orden barajado
+    orden_base = list(range(n))
+    random.shuffle(orden_base)
+    for i in range(n):
+        u = orden_base[i]
+        v = orden_base[(i + 1) % n]
+        peso = random.randint(7, 35)
+        matriz[u][v] = peso
+        matriz[v][u] = peso
 
-  # Conexiones adicionales según densidad
-  for i in range(n):
-    for j in range(i + 1, n):
-      if matriz[i][j] is None and random.random() < (densidad / 100.0):
-        peso = random.randint(15, 60)
-        matriz[i][j] = peso
-        matriz[j][i] = peso
+    # Conexiones adicionales según densidad
+    for i in range(n):
+        for j in range(i + 1, n):
+            if matriz[i][j] is None and random.random() < (densidad / 100.0):
+                peso = random.randint(15, 60)
+                matriz[i][j] = peso
+                matriz[j][i] = peso
 
-  st.session_state.matriz = matriz
-  st.session_state.paso_actual = 0
+    st.session_state.matriz = matriz
+    st.session_state.paso_manual = 0
 
 matriz = st.session_state.matriz
 nombres = [chr(65 + i) for i in range(n)]
 
 # -------------------------------------------------------------
-# ANÁLISIS HISTÓRICO SECUENCIAL DEL ESPACIO MUESTRAL
+# EVALUACIÓN HISTÓRICA DEL ESPACIO MUESTRAL
 # -------------------------------------------------------------
 evaluaciones = []
 mejor_costo_global = float("inf")
 mejor_evaluacion_global = None
 ciclos_vistos = set()
 
-costo_record_historico = float("inf")
+record_historico = float("inf")
 ruta_record_historica = None
 
 for perm in itertools.permutations(range(1, n)):
-  ruta_tupla = (0,) + perm + (0,)
-  ruta_reversa = (0,) + tuple(reversed(perm)) + (0,)
+    ruta_tupla = (0,) + perm + (0,)
+    ruta_reversa = (0,) + tuple(reversed(perm)) + (0,)
 
-  if ruta_reversa in ciclos_vistos:
-    continue
-  ciclos_vistos.add(ruta_tupla)
+    if ruta_reversa in ciclos_vistos:
+        continue
+    ciclos_vistos.add(ruta_tupla)
 
-  ruta = list(ruta_tupla)
-  costo = 0
-  valida = True
-  desglose_terminos = []
-  arista_rota = None
+    ruta = list(ruta_tupla)
+    costo = 0
+    valida = True
+    desglose_terminos = []
+    arista_rota = None
 
-  for k in range(n):
-    u, v = ruta[k], ruta[k + 1]
-    w = matriz[u][v]
-    if w is None:
-      valida = False
-      arista_rota = (nombres[u], nombres[v])
-      desglose_terminos.append(f"w({nombres[u]},{nombres[v]})=—")
-      break
-    costo += w
-    desglose_terminos.append(f"{w}")
+    for k in range(n):
+        u, v = ruta[k], ruta[k + 1]
+        w = matriz[u][v]
+        if w is None:
+            valida = False
+            arista_rota = (nombres[u], nombres[v])
+            desglose_terminos.append(f"w({nombres[u]},{nombres[v]})=—")
+            break
+        costo += w
+        desglose_terminos.append(f"{w}")
 
-  # Comparación con el mejor costo conocido hasta ese instante
-  hubo_mejora = False
-  if valida:
-    if costo < costo_record_historico:
-      costo_record_historico = costo
-      ruta_record_historica = ruta
-      hubo_mejora = True
-      estado = "MEJORA_RECORD"
-    elif costo == costo_record_historico:
-      estado = "EMPATA_RECORD"
+    # Registro de comparaciones y descartes en orden secuencial
+    if valida:
+        if costo < record_historico:
+            record_historico = costo
+            ruta_record_historica = ruta
+            estado = "MEJORA_RECORD"
+            motivo = f"Supera al récord anterior. Se convierte en la mejor solución provisional ({costo} u)."
+        elif costo == record_historico:
+            estado = "EMPATA_RECORD"
+            motivo = f"Empata en costo ({costo} u) con la mejor solución provisional vigente."
+        else:
+            estado = "DESCARTADA_COSTOSA"
+            dif = costo - record_historico
+            motivo = f"Descartada: costo de {costo} u (+{dif} u respecto al récord actual de {record_historico} u)."
     else:
-      estado = "DESCARTADA_COSTOSA"
-  else:
-    estado = "INFACTIBLE"
+        estado = "INFACTIBLE"
+        motivo = f"Descartada: trayectoria interrumpida. No existe arista entre {arista_rota[0]} y {arista_rota[1]}."
 
-  eval_item = {
-      "paso": len(evaluaciones) + 1,
-      "ruta_indices": ruta,
-      "ruta_str": " → ".join([nombres[idx] for idx in ruta]),
-      "costo": costo if valida else None,
-      "valida": valida,
-      "desglose": " + ".join(desglose_terminos) if valida else "Trayectoria discontinua",
-      "arista_rota": arista_rota,
-      "estado": estado,
-      "costo_record": costo_record_historico if costo_record_historico != float("inf") else None,
-      "ruta_record": ruta_record_historica,
-  }
-  evaluaciones.append(eval_item)
+    eval_item = {
+        "paso": len(evaluaciones) + 1,
+        "ruta_indices": ruta,
+        "ruta_str": " → ".join([nombres[idx] for idx in ruta]),
+        "costo": costo if valida else None,
+        "valida": valida,
+        "desglose": " + ".join(desglose_terminos) if valida else "Trayectoria discontinua",
+        "arista_rota": arista_rota,
+        "estado": estado,
+        "motivo": motivo,
+        "costo_record": record_historico if record_historico != float("inf") else None,
+        "ruta_record": ruta_record_historica,
+    }
+    evaluaciones.append(eval_item)
 
-  if valida and costo < mejor_costo_global:
-    mejor_costo_global = costo
-    mejor_evaluacion_global = eval_item
+    if valida and costo < mejor_costo_global:
+        mejor_costo_global = costo
+        mejor_evaluacion_global = eval_item
 
 rutas_validas = [r for r in evaluaciones if r["valida"]]
+rutas_validas_ranking = sorted(rutas_validas, key=lambda x: x["costo"])
 total_pasos = len(evaluaciones)
 
-# -------------------------------------------------------------
-# CABECERA MATEMÁTICA Y CONTEXTUALIZACIÓN
-# -------------------------------------------------------------
-c_head, c_badges = st.columns([2.6, 1.4])
-with c_head:
-  st.markdown(
-      '<div class="editorial-kicker">MATEMÁTICA COMPUTACIONAL • TEORÍA DE GRAFOS</div>',
-      unsafe_allow_html=True,
-  )
-  st.markdown(
-      '<div class="main-title">Problema del Agente <span>Viajero</span></div>',
-      unsafe_allow_html=True,
-  )
-  st.markdown(
-      '<div class="desc-text">'
-      "Explorador y simulador de optimización discreta en grafos ponderados $G = (V, E, W)$. "
-      "Visualización algorítmica de la búsqueda exhaustiva para determinar el ciclo hamiltoniano de coste mínimo."
-      "</div>",
-      unsafe_allow_html=True,
-  )
+# Coordenadas poligonales regulares para los nodos
+pos = {}
+for i in range(n):
+    angulo = (2 * math.pi * i / n) + (math.pi / 2)
+    radio = 1.0 + 0.04 * math.sin(i * 1.5)
+    pos[nombres[i]] = (radio * math.cos(angulo), radio * math.sin(angulo))
 
-with c_badges:
-  st.write("")
-  st.markdown(
-      f"""
-    <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
-        <span class="stat-badge badge-mint">Grafo G = (V, E)</span>
-        <span class="stat-badge badge-lavender">Espacio Único: {total_pasos:,} permutaciones</span>
-        <span class="stat-badge badge-peach">Ciclos Factibles: {len(rutas_validas)}</span>
-    </div>
-    """,
-      unsafe_allow_html=True,
-  )
-
-st.latex(r"\min_{\pi} \quad C(\pi) = \sum_{i=0}^{n-1} w(v_i, v_{i+1})")
-st.write("")
-
-# KPIs
-kpi1, kpi2, kpi3, kpi4 = st.columns(4)
-with kpi1:
-  st.metric("Vértices |V|", f"{n} Nodos")
-with kpi2:
-  aristas_totales = sum(1 for i in range(n) for j in range(i + 1, n) if matriz[i][j] is not None)
-  st.metric("Aristas |E|", f"{aristas_totales}")
-with kpi3:
-  st.metric("Ciclos Conexos Únicos", f"{len(rutas_validas)} / {total_pasos}")
-with kpi4:
-  st.metric("Costo Mínimo Global", f"{mejor_costo_global}" if mejor_costo_global != float("inf") else "Infactible")
-
-st.write("")
-
-# -------------------------------------------------------------
-# PESTAÑAS PRINCIPALES
-# -------------------------------------------------------------
-tab_contexto, tab_simulador, tab_matriz, tab_auditoria = st.tabs([
-    "📖 Contexto y Fundamento Teórico",
-    "🎬 Simulador Paso a Paso",
-    "🔢 Matriz de Costos",
-    "🛡️ Auditoría de Hamiltonicidad",
-])
-
-# -------------------------------------------------------------
-# PESTAÑA 0: CONTEXTUALIZACIÓN DEL PROYECTO
-# -------------------------------------------------------------
-with tab_contexto:
-  with st.container(border=True):
-    st.subheader("¿Qué problema resuelve esta aplicación y cómo lo hace?")
-    st.markdown(
-        """
-        El **Problema del Agente Viajero** (*Traveling Salesperson Problem* o **TSP**) es uno de los desafíos centrales en la **Matemática Computacional** y la **Optimización Combinatoria**.
-
-        * **El Objetivo Formal:** Dado un grafo no dirigido ponderado $G = (V, E, W)$, encontrar una secuencia cerrada ordenada de vértices $\\pi = (v_0, v_1, \\dots, v_{n-1}, v_0)$ tal que:
-          1. Visite **cada vértice exactamente una vez** (excepto el de inicio y fin).
-          2. Regrese al vértice de partida $v_0$.
-          3. Minimice la función objetivo $C(\\pi) = \\sum_{i=0}^{n-1} w(v_i, v_{i+1})$.
-
-        * **Espacio Muestral y Simetría Bidireccional:**  
-          Fijando el vértice inicial en $A$, el número de permutaciones posibles de los vértices restantes es $(n-1)!$. Dado que el grafo es no dirigido ($w(u, v) = w(v, u)$), recorrer un ciclo en sentido horario genera exactamente el mismo costo que recorrerlo en sentido antihorario. Esta herramienta descarta sistemáticamente las reflexiones reversas, reduciendo el espacio muestral evaluado a:
-        """
-    )
-    st.latex(r"\frac{(n-1)!}{2}")
-    st.markdown(
-        """
-        * **Mecanismo de Evaluación:**
-          1. **Comprobación de conectividad:** Se evalúa si cada arista consecutiva existe en la matriz de adyacencia. Si falta una sola conexión, la ruta se clasifica como **Infactible** ($C = \\infty$).
-          2. **Cálculo de costo acumulado:** Se suman los pesos de las aristas del ciclo.
-          3. **Poda y comparación:** Se contrasta con el récord mínimo encontrado hasta ese momento; si es menor, se actualiza la solución óptima.
-        """
-    )
-
-# -------------------------------------------------------------
-# PESTAÑA 1: SIMULADOR PASO A PASO (MANUAL Y AUTOMÁTICO)
-# -------------------------------------------------------------
-with tab_simulador:
-  col_graf, col_interac = st.columns([1.5, 1])
-
-  with col_interac:
-    st.markdown("#### Control de Ejecución")
-
-    modo_sim = st.radio(
-        "Modo de simulación:",
-        ["Manual (Paso a paso)", "Automático (Continuo)"],
-        horizontal=True,
-    )
-
-    if "paso_actual" not in st.session_state:
-      st.session_state.paso_actual = 0
-
-    if modo_sim == "Manual (Paso a paso)":
-      b_prev, b_next, b_reset = st.columns(3)
-      with b_prev:
-        if st.button("⬅️ Anterior", use_container_width=True):
-          st.session_state.paso_actual = max(0, st.session_state.paso_actual - 1)
-      with b_next:
-        if st.button("Siguiente ➡️", use_container_width=True):
-          st.session_state.paso_actual = min(total_pasos - 1, st.session_state.paso_actual + 1)
-      with b_reset:
-        if st.button("⏮️ Reiniciar", use_container_width=True):
-          st.session_state.paso_actual = 0
-
-      idx_paso = st.slider(
-          "Permutación evaluada:",
-          min_value=1,
-          max_value=total_pasos,
-          value=st.session_state.paso_actual + 1,
-      )
-      st.session_state.paso_actual = idx_paso - 1
-
-    else:
-      vel = st.slider("Velocidad de simulación (segundos por paso):", min_value=0.05, max_value=1.5, value=0.4, step=0.05)
-      c_play, c_stop = st.columns(2)
-      with c_play:
-        iniciar_auto = st.button("▶️ Iniciar Simulación Automática", use_container_width=True)
-      with c_stop:
-        reset_auto = st.button("⏮️ Reiniciar al Inicio", use_container_width=True)
-
-      if reset_auto:
-        st.session_state.paso_actual = 0
-
-      if iniciar_auto:
-        contenedor_placeholder = st.empty()
-        for p in range(st.session_state.paso_actual, total_pasos):
-          st.session_state.paso_actual = p
-          time.sleep(vel)
-          st.rerun()
-
-    # Datos del paso en análisis
-    paso_info = evaluaciones[st.session_state.paso_actual]
-    ruta_a_dibujar = paso_info["ruta_indices"]
-
-    # Cuadro comparativo del paso
-    with st.container(border=True):
-      st.markdown(f"**EVALUANDO PERMUTACIÓN {paso_info['paso']} / {total_pasos}**")
-      st.markdown(f"**Ruta:** `{paso_info['ruta_str']}`")
-      st.caption("Cálculo de pesos:")
-      st.code(f"{paso_info['desglose']}", language="text")
-
-      st.markdown("---")
-      st.markdown("**Estado de la Comparación:**")
-
-      if paso_info["estado"] == "MEJORA_RECORD":
-        st.markdown(f":green[**★ ¡NUEVO RÉCORD MÍNIMO! Costo = {paso_info['costo']} unidades**]")
-        st.caption("Esta ruta superó al mejor costo anterior y se establece como la nueva solución óptima provisional.")
-      elif paso_info["estado"] == "EMPATA_RECORD":
-        st.markdown(f":blue[**⚖️ EMPATE CON EL RÉCORD: Costo = {paso_info['costo']} unidades**]")
-        st.caption("Empata el valor del óptimo provisional actual.")
-      elif paso_info["estado"] == "DESCARTADA_COSTOSA":
-        dif = paso_info["costo"] - paso_info["costo_record"]
-        st.markdown(f":orange[**❌ RUTA DESCARTADA POR MAYOR COSTO: {paso_info['costo']} unidades**]")
-        st.caption(f"Es **+{dif} unidades** más larga que el mejor camino conocido (`{paso_info['costo_record']}`). Se desecha.")
-      else:
-        st.markdown(":red[**🚫 TRAYECTORIA INFACTIBLE (ARISTA INEXISTENTE)**]")
-        u_rot, v_rot = paso_info["arista_rota"]
-        st.caption(f"No existe conexión directa entre **{u_rot}** y **{v_rot}**. El ciclo no puede completarse.")
-
-      st.markdown("---")
-      if paso_info["costo_record"] is not None:
-        st.markdown(f"**Óptimo provisional al momento:** `{paso_info['costo_record']} unidades`")
-      else:
-        st.markdown("**Óptimo provisional:** `Aún no encontrado`")
-
-    # Explicación del funcionamiento interno
-    with st.expander("ℹ️ ¿Qué está sucediendo internamente?"):
-      st.markdown(
-          """
-          1. El algoritmo genera la siguiente permutación matemática del conjunto de ciudades.
-          2. Verifica una a una las aristas en la matriz de adyacencia.
-          3. Si alguna arista tiene peso $\\infty$ (no existe), la trayectoria se descarta inmediatamente.
-          4. Si el ciclo existe, su suma se compara con el récord vigente:
-             * **Menor:** actualiza el récord.
-             * **Mayor o igual:** se almacena pero se rechaza como solución mínima.
-          """
-      )
-
-  # -------------------------------------------------------------
-  # DIBUJADO DEL GRAFO CON DETECCIÓN GEOMÉTRICA DE CRUCES
-  # -------------------------------------------------------------
-  with col_graf:
-    G = nx.Graph()
-    for nombre in nombres:
-      G.add_node(nombre)
-    aristas_info = []
-    for i in range(n):
-      for j in range(i + 1, n):
+# Estructura del grafo en NetworkX
+G = nx.Graph()
+for nombre in nombres:
+    G.add_node(nombre)
+aristas_info = []
+for i in range(n):
+    for j in range(i + 1, n):
         if matriz[i][j] is not None:
-          G.add_edge(nombres[i], nombres[j], weight=matriz[i][j])
-          aristas_info.append((i, j, matriz[i][j]))
+            G.add_edge(nombres[i], nombres[j], weight=matriz[i][j])
+            aristas_info.append((i, j, matriz[i][j]))
 
-    pos = {}
-    for i in range(n):
-      angulo = (2 * math.pi * i / n) + (math.pi / 2)
-      radio = 1.0 + 0.04 * math.sin(i * 1.5)
-      pos[nombres[i]] = (radio * math.cos(angulo), radio * math.sin(angulo))
+def interseccion_t(p1, p2, q1, q2):
+    dx1, dy1 = p2[0] - p1[0], p2[1] - p1[1]
+    dx2, dy2 = q2[0] - q1[0], q2[1] - q1[1]
+    det = dx1 * dy2 - dy1 * dx2
+    if abs(det) < 1e-9:
+        return None
+    t = ((q1[0] - p1[0]) * dy2 - (q1[1] - p1[1]) * dx2) / det
+    s = ((q1[0] - p1[0]) * dy1 - (q1[1] - p1[1]) * dx1) / det
+    if 0.05 < t < 0.95 and 0.05 < s < 0.95:
+        return t
+    return None
 
-    fig, ax = plt.subplots(figsize=(6.8, 5.2), dpi=140)
+def dibujar_figura_grafo(ruta_indices=None, estado="BASE"):
+    fig, ax = plt.subplots(figsize=(6.8, 5.0), dpi=130)
     fig.patch.set_facecolor("#222235")
     ax.set_facecolor("#222235")
 
     # Aristas base
     nx.draw_networkx_edges(G, pos, ax=ax, edge_color="#454562", width=1.6, alpha=0.85)
 
-    # Aristas de la ruta evaluada en el paso actual
-    if paso_info["valida"]:
-      color_ruta = "#86efac" if paso_info["estado"] == "MEJORA_RECORD" else "#fed7aa"
-      aristas_resaltadas = [(nombres[ruta_a_dibujar[i]], nombres[ruta_a_dibujar[i + 1]]) for i in range(n)]
-      nx.draw_networkx_edges(G, pos, edgelist=aristas_resaltadas, ax=ax, edge_color=color_ruta, width=3.8, alpha=0.98)
-    else:
-      # Si es rota, se dibujan en rojo las aristas que sí existen hasta el corte
-      aristas_parciales = []
-      for i in range(n):
-        u, v = ruta_a_dibujar[i], ruta_a_dibujar[i + 1]
-        if matriz[u][v] is not None:
-          aristas_parciales.append((nombres[u], nombres[v]))
+    # Resaltado de trayectoria evaluada
+    if ruta_indices:
+        if estado == "INFACTIBLE":
+            aristas_ok = []
+            for k in range(n):
+                u, v = ruta_indices[k], ruta_indices[k + 1]
+                if matriz[u][v] is not None:
+                    aristas_ok.append((nombres[u], nombres[v]))
+                else:
+                    break
+            if aristas_ok:
+                nx.draw_networkx_edges(G, pos, edgelist=aristas_ok, ax=ax, edge_color="#fca5a5", width=3.2, style="dashed", alpha=0.95)
         else:
-          break
-      if aristas_parciales:
-        nx.draw_networkx_edges(G, pos, edgelist=aristas_parciales, ax=ax, edge_color="#fca5a5", width=3.2, style="dashed", alpha=0.95)
+            color_arista = "#86efac" if estado == "MEJORA_RECORD" else "#fed7aa"
+            aristas_ciclo = [(nombres[ruta_indices[k]], nombres[ruta_indices[k + 1]]) for k in range(n)]
+            nx.draw_networkx_edges(G, pos, edgelist=aristas_ciclo, ax=ax, edge_color=color_arista, width=3.8, alpha=0.98)
 
     # Nodos
     colores_nodos = ["#86efac" if i == 0 else "#ddd6fe" for i in range(n)]
@@ -539,94 +358,359 @@ with tab_simulador:
     nx.draw_networkx_nodes(G, pos, ax=ax, node_color=colores_nodos, node_size=880, edgecolors=bordes_nodos, linewidths=2.2)
 
     for idx, nombre in enumerate(nombres):
-      ax.text(pos[nombre][0], pos[nombre][1], nombre, fontsize=12, fontweight="bold", color=colores_letras[idx], ha="center", va="center")
+        ax.text(pos[nombre][0], pos[nombre][1], nombre, fontsize=12, fontweight="bold", color=colores_letras[idx], ha="center", va="center")
 
-    def interseccion_t(p1, p2, q1, q2):
-      dx1, dy1 = p2[0] - p1[0], p2[1] - p1[1]
-      dx2, dy2 = q2[0] - q1[0], q2[1] - q1[1]
-      det = dx1 * dy2 - dy1 * dx2
-      if abs(det) < 1e-9:
-        return None
-      t = ((q1[0] - p1[0]) * dy2 - (q1[1] - p1[1]) * dx2) / det
-      s = ((q1[0] - p1[0]) * dy1 - (q1[1] - p1[1]) * dx1) / det
-      if 0.05 < t < 0.95 and 0.05 < s < 0.95:
-        return t
-      return None
-
-    # Ubicación limpia de los pesos sobre la recta
+    # Pesos sobre las rectas sin superposición
     for i, j, peso in aristas_info:
-      p1 = pos[nombres[i]]
-      p2 = pos[nombres[j]]
+        p1 = pos[nombres[i]]
+        p2 = pos[nombres[j]]
 
-      cruces_t = []
-      for k, l, _ in aristas_info:
-        if (i, j) == (k, l) or len({i, j, k, l}) < 4:
-          continue
-        q1 = pos[nombres[k]]
-        q2 = pos[nombres[l]]
-        t_cruce = interseccion_t(p1, p2, q1, q2)
-        if t_cruce is not None:
-          cruces_t.append(t_cruce)
+        cruces_t = []
+        for k, l, _ in aristas_info:
+            if (i, j) == (k, l) or len({i, j, k, l}) < 4:
+                continue
+            q1 = pos[nombres[k]]
+            q2 = pos[nombres[l]]
+            t_cruce = interseccion_t(p1, p2, q1, q2)
+            if t_cruce is not None:
+                cruces_t.append(t_cruce)
 
-      puntos_t = sorted([0.22] + [t for t in cruces_t if 0.22 < t < 0.78] + [0.78])
+        puntos_t = sorted([0.22] + [t for t in cruces_t if 0.22 < t < 0.78] + [0.78])
 
-      max_espacio = -1.0
-      t_optimo = 0.50
-      for idx_t in range(len(puntos_t) - 1):
-        espacio = puntos_t[idx_t + 1] - puntos_t[idx_t]
-        if espacio > max_espacio:
-          max_espacio = espacio
-          t_optimo = (puntos_t[idx_t] + puntos_t[idx_t + 1]) / 2.0
+        max_espacio = -1.0
+        t_optimo = 0.50
+        for idx_t in range(len(puntos_t) - 1):
+            espacio = puntos_t[idx_t + 1] - puntos_t[idx_t]
+            if espacio > max_espacio:
+                max_espacio = espacio
+                t_optimo = (puntos_t[idx_t] + puntos_t[idx_t + 1]) / 2.0
 
-      x_peso = (1.0 - t_optimo) * p1[0] + t_optimo * p2[0]
-      y_peso = (1.0 - t_optimo) * p1[1] + t_optimo * p2[1]
+        x_peso = (1.0 - t_optimo) * p1[0] + t_optimo * p2[0]
+        y_peso = (1.0 - t_optimo) * p1[1] + t_optimo * p2[1]
 
-      ax.text(
-          x_peso,
-          y_peso,
-          str(peso),
-          fontsize=8.5,
-          fontweight="bold",
-          fontfamily="monospace",
-          color="#0f172a",
-          ha="center",
-          va="center",
-          bbox=dict(
-              boxstyle="round,pad=0.22",
-              facecolor="#f8fafc",
-              edgecolor="#94a3b8",
-              linewidth=0.9,
-              alpha=0.98,
-          ),
-      )
+        ax.text(
+            x_peso,
+            y_peso,
+            str(peso),
+            fontsize=8.5,
+            fontweight="bold",
+            fontfamily="monospace",
+            color="#0f172a",
+            ha="center",
+            va="center",
+            bbox=dict(boxstyle="round,pad=0.22", facecolor="#f8fafc", edgecolor="#94a3b8", linewidth=0.9, alpha=0.98),
+        )
 
     ax.axis("off")
     plt.tight_layout()
-    st.pyplot(fig)
+    return fig
 
 # -------------------------------------------------------------
-# PESTAÑA 2: MATRIZ DE COSTOS
+# CABECERA Y MÉTRICAS GLOBALES
+# -------------------------------------------------------------
+c_head, c_badges = st.columns([2.6, 1.4])
+with c_head:
+    st.markdown('<div class="editorial-kicker">MATEMÁTICA COMPUTACIONAL • TEORÍA DE GRAFOS</div>', unsafe_allow_html=True)
+    st.markdown('<div class="main-title">Problema del Agente <span>Viajero</span></div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="desc-text">'
+        "Optimización en grafos ponderados <b>G = (V, E, W)</b>. "
+        "Búsqueda exhaustiva del ciclo hamiltoniano óptimo con análisis comparativo paso a paso y descarte en tiempo real."
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
+with c_badges:
+    st.write("")
+    st.markdown(
+        f"""
+        <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
+            <span class="stat-badge badge-mint">Grafo G = (V, E)</span>
+            <span class="stat-badge badge-lavender">Espacio Único: {total_pasos:,} permutaciones</span>
+            <span class="stat-badge badge-peach">Ciclos Factibles: {len(rutas_validas)}</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+st.latex(r"\min_{\pi} \quad C(\pi) = \sum_{i=0}^{n-1} w(v_i, v_{i+1})")
+st.write("")
+
+kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+with kpi1:
+    st.metric("Vértices |V|", f"{n} Nodos")
+with kpi2:
+    aristas_totales = sum(1 for i in range(n) for j in range(i + 1, n) if matriz[i][j] is not None)
+    st.metric("Aristas |E|", f"{aristas_totales}")
+with kpi3:
+    st.metric("Ciclos Conexos Únicos", f"{len(rutas_validas)} / {total_pasos}")
+with kpi4:
+    st.metric("Costo Mínimo Global", f"{mejor_costo_global}" if mejor_costo_global != float("inf") else "Infactible")
+
+st.write("")
+
+# -------------------------------------------------------------
+# PESTAÑAS PRINCIPALES
+# -------------------------------------------------------------
+tab_simulador, tab_ranking, tab_contexto, tab_matriz, tab_auditoria = st.tabs([
+    "🎬 Explorador Paso a Paso (Simulador)",
+    "🏆 Resultados Ordenados (Ranking)",
+    "📖 Contexto del Proyecto",
+    "🔢 Matriz de Costos",
+    "🛡️ Auditoría de Hamiltonicidad",
+])
+
+# -------------------------------------------------------------
+# PESTAÑA 1: EXPLORADOR PASO A PASO (MANUAL Y AUTOMÁTICO)
+# -------------------------------------------------------------
+with tab_simulador:
+    st.markdown("### Simulación de Búsqueda, Comparaciones y Descartes")
+    st.markdown("Observa cómo la computadora evalúa secuencialmente cada permutación, calcula su costo acumulado y decide si la descarta o si actualiza el récord.")
+
+    modo_ejecucion = st.radio(
+        "Modo de control:",
+        ["🕹️ Manual (Paso a paso)", "▶️ Automático (Animación en vivo)"],
+        horizontal=True,
+    )
+
+    if modo_ejecucion == "🕹️ Manual (Paso a paso)":
+        c_nav1, c_nav2, c_nav3 = st.columns([1, 1, 2])
+        with c_nav1:
+            if st.button("⬅️ Anterior", use_container_width=True):
+                st.session_state.paso_manual = max(0, st.session_state.paso_manual - 1)
+        with c_nav2:
+            if st.button("Siguiente ➡️", use_container_width=True):
+                st.session_state.paso_manual = min(total_pasos - 1, st.session_state.paso_manual + 1)
+        with c_nav3:
+            st.session_state.paso_manual = st.slider(
+                "Navegador de iteración:",
+                min_value=1,
+                max_value=total_pasos,
+                value=st.session_state.paso_manual + 1,
+            ) - 1
+
+        paso_actual_info = evaluaciones[st.session_state.paso_manual]
+
+        c_graph_m, c_info_m = st.columns([1.4, 1])
+        with c_graph_m:
+            fig_m = dibujar_figura_grafo(paso_actual_info["ruta_indices"], paso_actual_info["estado"])
+            st.pyplot(fig_m)
+            plt.close(fig_m)
+
+        with c_info_m:
+            with st.container(border=True):
+                st.markdown(f"#### Paso {paso_actual_info['paso']} de {total_pasos}")
+                st.markdown(f"**Ruta Evaluada:** `{paso_actual_info['ruta_str']}`")
+                st.caption("Cálculo de pesos:")
+                st.code(paso_actual_info["desglose"], language="text")
+
+                st.markdown("---")
+                st.markdown("**Resultado del Análisis:**")
+                if paso_actual_info["estado"] == "MEJORA_RECORD":
+                    st.markdown(f":green[**★ NUEVO RÉCORD: {paso_actual_info['costo']} unidades**]")
+                elif paso_actual_info["estado"] == "EMPATA_RECORD":
+                    st.markdown(f":blue[**⚖️ EMPATE CON EL RÉCORD: {paso_actual_info['costo']} unidades**]")
+                elif paso_actual_info["estado"] == "DESCARTADA_COSTOSA":
+                    st.markdown(f":orange[**❌ DESCARTADA POR EXCESO DE COSTO ({paso_actual_info['costo']} u)**]")
+                else:
+                    st.markdown(":red[**🚫 DESCARTADA POR INFACTIBILIDAD**]")
+
+                st.caption(f"**Decisión:** {paso_actual_info['motivo']}")
+
+                st.markdown("---")
+                record_texto = f"{paso_actual_info['costo_record']} unidades" if paso_actual_info["costo_record"] is not None else "Ninguno"
+                st.markdown(f"**Récord Mínimo Vigente en este paso:** `{record_texto}`")
+
+    else:
+        # Modo Automático con contenedor dinámico
+        c_ctrl1, c_ctrl2 = st.columns([2, 1])
+        with c_ctrl1:
+            velocidad = st.slider("Velocidad de simulación (segundos por paso):", min_value=0.05, max_value=1.0, value=0.25, step=0.05)
+        with c_ctrl2:
+            st.write("&nbsp;")
+            btn_play = st.button("▶️ Iniciar / Reiniciar Simulación", use_container_width=True)
+
+        contenedor_animacion = st.empty()
+
+        if btn_play:
+            for p in range(total_pasos):
+                paso_datos = evaluaciones[p]
+                with contenedor_animacion.container():
+                    c_g_auto, c_i_auto = st.columns([1.4, 1])
+                    with c_g_auto:
+                        fig_auto = dibujar_figura_grafo(paso_datos["ruta_indices"], paso_datos["estado"])
+                        st.pyplot(fig_auto)
+                        plt.close(fig_auto)
+                    with c_i_auto:
+                        with st.container(border=True):
+                            st.progress((p + 1) / total_pasos, text=f"Progreso: {p + 1}/{total_pasos} permutaciones")
+                            st.markdown(f"#### Paso {paso_datos['paso']} / {total_pasos}")
+                            st.markdown(f"**Trayectoria:** `{paso_datos['ruta_str']}`")
+                            st.caption("Suma analítica:")
+                            st.code(paso_datos["desglose"], language="text")
+
+                            st.markdown("---")
+                            if paso_datos["estado"] == "MEJORA_RECORD":
+                                st.markdown(f":green[**★ NUEVO RÉCORD: {paso_datos['costo']} unidades**]")
+                            elif paso_datos["estado"] == "EMPATA_RECORD":
+                                st.markdown(f":blue[**⚖️ EMPATE CON EL RÉCORD: {paso_datos['costo']} unidades**]")
+                            elif paso_datos["estado"] == "DESCARTADA_COSTOSA":
+                                st.markdown(f":orange[**❌ DESCARTADA: {paso_datos['costo']} unidades**]")
+                            else:
+                                st.markdown(":red[**🚫 RUTA ROTA (INFACTIBLE)**]")
+
+                            st.caption(f"**Motivo:** {paso_datos['motivo']}")
+                            st.markdown("---")
+                            rec_str = f"{paso_datos['costo_record']} unidades" if paso_datos["costo_record"] else "Aún sin solución"
+                            st.markdown(f"**Récord Óptimo al momento:** `{rec_str}`")
+
+                time.sleep(velocidad)
+        else:
+            # Estado estático inicial si no se ha presionado Play
+            primer_paso = evaluaciones[0]
+            with contenedor_animacion.container():
+                c_g_auto, c_i_auto = st.columns([1.4, 1])
+                with c_g_auto:
+                    fig_ini = dibujar_figura_grafo(primer_paso["ruta_indices"], primer_paso["estado"])
+                    st.pyplot(fig_ini)
+                    plt.close(fig_ini)
+                with c_i_auto:
+                    with st.container(border=True):
+                        st.markdown("#### Simulación en pausa")
+                        st.write("Haz clic en **'Iniciar / Reiniciar Simulación'** para observar la exploración automática continua de cada ciclo.")
+                        st.markdown("---")
+                        st.markdown(f"**Primera ruta a evaluar:** `{primer_paso['ruta_str']}`")
+                        st.caption(f"**Estado inicial:** {primer_paso['motivo']}")
+
+    # Historial completo de comparaciones y descartes en tabla interactiva
+    st.markdown("---")
+    st.markdown("#### 📋 Bitácora Completa de Comparaciones y Descartes")
+    st.caption("Detalle cronológico de cada decisión tomada por la fuerza bruta durante la búsqueda exhaustiva:")
+
+    df_historial = pd.DataFrame([
+        {
+            "Paso": item["paso"],
+            "Ruta Evaluada": item["ruta_str"],
+            "Costo": item["costo"] if item["costo"] is not None else "—",
+            "Condición": "Factible" if item["valida"] else "Infactible",
+            "Decisión Matemática": item["motivo"],
+        }
+        for item in evaluaciones
+    ])
+    st.dataframe(df_historial, use_container_width=True, height=260)
+
+# -------------------------------------------------------------
+# PESTAÑA 2: RESULTADOS ORDENADOS (RANKING)
+# -------------------------------------------------------------
+with tab_ranking:
+    st.markdown("### Ranking de Ciclos Factibles (Menor a Mayor Costo)")
+    st.markdown("Aquí se concentran únicamente los ciclos hamiltonianos conexos, clasificados por su costo total.")
+
+    if rutas_validas_ranking:
+        col_r_graf, col_r_info = st.columns([1.4, 1])
+
+        with col_r_info:
+            idx_ranking = st.slider(
+                "Posición en el ranking:",
+                min_value=1,
+                max_value=len(rutas_validas_ranking),
+                value=1,
+                help="1 = Ruta Óptima Global",
+            )
+            seleccion_ranking = rutas_validas_ranking[idx_ranking - 1]
+            diferencia_opt = seleccion_ranking["costo"] - mejor_costo_global
+
+            with st.container(border=True):
+                if idx_ranking == 1:
+                    st.markdown("**:green[★ RUTA ÓPTIMA GLOBAL (1er Puesto):]**")
+                else:
+                    st.markdown(f"**:orange[PUESTO #{idx_ranking} EN EL RANKING:]**")
+
+                st.markdown(f"**{seleccion_ranking['ruta_str']}**")
+                st.caption("Suma de pesos de la trayectoria:")
+                st.code(f"{seleccion_ranking['desglose']} = {seleccion_ranking['costo']} unidades", language="text")
+
+                if diferencia_opt == 0:
+                    st.caption(":green[*(Menor distancia posible del grafo)*]")
+                else:
+                    st.caption(f":red[*(+{diferencia_opt} unidades por encima de la ruta óptima)*]")
+
+        with col_r_graf:
+            fig_rank = dibujar_figura_grafo(
+                seleccion_ranking["ruta_indices"],
+                "MEJORA_RECORD" if idx_ranking == 1 else "DESCARTADA_COSTOSA",
+            )
+            st.pyplot(fig_rank)
+            plt.close(fig_rank)
+
+        st.markdown("---")
+        st.markdown("#### Tabla Comparativa de Soluciones Factibles")
+        df_ranking = pd.DataFrame([
+            {
+                "Puesto": i + 1,
+                "Ciclo Hamiltoniano": r["ruta_str"],
+                "Costo Total": r["costo"],
+                "Diferencia con Óptimo": f"+{r['costo'] - mejor_costo_global} u",
+            }
+            for i, r in enumerate(rutas_validas_ranking)
+        ])
+        st.dataframe(df_ranking, use_container_width=True, height=240)
+    else:
+        st.warning("El grafo generado no contiene ciclos hamiltonianos conexos con los parámetros actuales.")
+
+# -------------------------------------------------------------
+# PESTAÑA 3: CONTEXTO DEL PROYECTO
+# -------------------------------------------------------------
+with tab_contexto:
+    with st.container(border=True):
+        st.subheader("Fundamentación Teórica del Problema")
+        st.markdown(
+            """
+            El **Problema del Agente Viajero** (*Traveling Salesperson Problem* o **TSP**) es uno de los problemas fundamentales de la **Matemática Computacional** y la **Optimización Combinatoria**:
+
+            * **Definición Formal:** Sea un grafo no dirigido ponderado $G = (V, E, W)$, se busca una permutación cerrada $\\pi = (v_0, v_1, \\dots, v_{n-1}, v_0)$ con $v_0 = A$ que minimice la función objetivo:
+            """
+        )
+        st.latex(r"C(\pi) = \sum_{i=0}^{n-1} w(v_i, v_{i+1})")
+        st.markdown(
+            """
+            * **Filtrado de Simetría Bidireccional:**  
+              En grafos no dirigidos, recorrer el ciclo en sentido horario genera exactamente el mismo costo que en sentido antihorario. Esta aplicación elimina automáticamente las reflexiones simétricas redundantes, reduciendo el espacio evaluado a la mitad exacta:
+            """
+        )
+        st.latex(r"\frac{(n-1)!}{2}")
+        st.markdown(
+            """
+            * **Metodología de Resolución:**
+              1. **Generación Exhaustiva:** Se producen sistemáticamente las permutaciones independientes de los vértices restantes.
+              2. **Auditoría de Aristas:** Se evalúa si el trayecto entre cada par de vértices consecutivos existe en la matriz de adyacencia. Si una sola arista no existe ($w = \\infty$), la ruta se cataloga como infactible.
+              3. **Comparación y Récord Provisional:** Cada ciclo factible se contrasta contra el menor valor encontrado hasta ese paso. Si mejora la cota mínima, se actualiza el óptimo provisional; en caso contrario, se documenta el motivo del descarte.
+            """
+        )
+
+# -------------------------------------------------------------
+# PESTAÑA 4: MATRIZ DE COSTOS
 # -------------------------------------------------------------
 with tab_matriz:
-  st.markdown("Matriz de adyacencia ponderada simétrica correspondiente al grafo $G = (V, E, W)$:")
-  df_matriz = pd.DataFrame([[val if val is not None else "—" for val in fila] for fila in matriz], index=nombres, columns=nombres)
-  st.dataframe(df_matriz, use_container_width=True)
-  csv = df_matriz.to_csv().encode("utf-8")
-  st.download_button(label="📥 Exportar Matriz a CSV", data=csv, file_name="matriz_adyacencia.csv", mime="text/csv")
+    st.markdown("Matriz de adyacencia ponderada simétrica correspondiente al grafo $G = (V, E, W)$:")
+    df_matriz = pd.DataFrame([[val if val is not None else "—" for val in fila] for fila in matriz], index=nombres, columns=nombres)
+    st.dataframe(df_matriz, use_container_width=True)
+    csv = df_matriz.to_csv().encode("utf-8")
+    st.download_button(label="📥 Exportar Matriz a CSV", data=csv, file_name="matriz_adyacencia.csv", mime="text/csv")
 
 # -------------------------------------------------------------
-# PESTAÑA 3: AUDITORÍA DE HAMILTONICIDAD
+# PESTAÑA 5: AUDITORÍA DE HAMILTONICIDAD
 # -------------------------------------------------------------
 with tab_auditoria:
-  st.markdown("#### Condición Necesaria de Grado Mínimo")
-  st.markdown("Para que exista ciclo hamiltoniano, cada vértice debe satisfacer la condición necesaria $deg(v) \\ge 2$:")
-  grados_data = []
-  for i in range(n):
-    g = sum(1 for j in range(n) if matriz[i][j] is not None)
-    cumple = g >= 2
-    grados_data.append({
-        "Vértice": nombres[i],
-        "Grado deg(v)": g,
-        "Condición deg(v) ≥ 2": "✅ Satisfecho" if cumple else "❌ No cumple (deg < 2)",
-    })
-  st.table(pd.DataFrame(grados_data))
+    st.markdown("#### Condición Necesaria de Grado Mínimo")
+    st.markdown("Para que exista ciclo hamiltoniano, cada vértice debe satisfacer la condición necesaria $deg(v) \\ge 2$:")
+    grados_data = []
+    for i in range(n):
+        g = sum(1 for j in range(n) if matriz[i][j] is not None)
+        cumple = g >= 2
+        grados_data.append({
+            "Vértice": nombres[i],
+            "Grado deg(v)": g,
+            "Condición deg(v) ≥ 2": "✅ Satisfecho" if cumple else "❌ No cumple (deg < 2)",
+        })
+    st.table(pd.DataFrame(grados_data))
