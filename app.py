@@ -208,7 +208,7 @@ with st.sidebar:
       "Ciudades / Vértices (n)",
       min_value=5,
       max_value=9,
-      value=7,
+      value=6,
       help="Número de vértices del grafo ponderado.",
   )
   densidad = st.slider(
@@ -457,35 +457,37 @@ with tab_sim:
             """
       )
 
-  # Representación Gráfica del Grafo
+  # -------------------------------------------------------------
+  # DIBUJADO DEL GRAFO CON DISPERSIÓN INTELIGENTE DE PESOS
+  # -------------------------------------------------------------
   with col_graf:
     G = nx.Graph()
     for nombre in nombres:
       G.add_node(nombre)
+    lista_aristas = []
     for i in range(n):
       for j in range(i + 1, n):
         if matriz[i][j] is not None:
           G.add_edge(nombres[i], nombres[j], weight=matriz[i][j])
+          lista_aristas.append((i, j, matriz[i][j]))
 
-    # Posición poligonal asimétrica y regular
+    # Posición poligonal estructurada
     pos = {}
     for i in range(n):
-      angulo = (2 * math.pi * i / n) + (math.pi / 2)  # Nodo A en la cima
+      angulo = (2 * math.pi * i / n) + (math.pi / 2)  # Nodo A arriba
       radio = 1.0 + 0.05 * math.sin(i * 1.5)
       pos[nombres[i]] = (radio * math.cos(angulo), radio * math.sin(angulo))
 
     fig, ax = plt.subplots(figsize=(6.8, 5.2), dpi=140)
-
-    # Fondo oscuro #252525
     fig.patch.set_facecolor("#252525")
     ax.set_facecolor("#252525")
 
-    # 1. Caminos base (Gris intermedio #545454)
+    # 1. Caminos base
     nx.draw_networkx_edges(
         G, pos, ax=ax, edge_color="#545454", width=1.6, alpha=0.85
     )
 
-    # 2. Resaltar la ruta seleccionada (Blanco ceniza #CFCFCF o Gris neutro #7D7D7D)
+    # 2. Resaltar la ruta activa
     if ruta_a_dibujar:
       color_ruta = (
           "#CFCFCF"
@@ -506,7 +508,7 @@ with tab_sim:
           alpha=0.98,
       )
 
-    # 3. Nodos en Gris Grafito (#545454) con borde contrastado
+    # 3. Nodos en Gris Grafito (#545454)
     nx.draw_networkx_nodes(
         G,
         pos,
@@ -530,26 +532,77 @@ with tab_sim:
           va="center",
       )
 
-    # 4. Pesos en las aristas (Horizontales sin rotar, fondo #252525, texto #CFCFCF)
-    edge_labels = nx.get_edge_attributes(G, "weight")
-    nx.draw_networkx_edge_labels(
-        G,
-        pos,
-        edge_labels=edge_labels,
-        ax=ax,
-        rotate=False,
-        font_size=8.5,
-        font_color="#CFCFCF",
-        font_family="monospace",
-        font_weight="bold",
-        bbox=dict(
-            boxstyle="round,pad=0.22",
-            facecolor="#252525",
-            edgecolor="#545454",
-            linewidth=1.0,
-            alpha=0.98,
-        ),
-    )
+    # 4. ACOMODO INTELIGENTE DE PESOS (EVITA SUPERPOSICIONES EN EL CENTRO)
+    # Calculamos posiciones individuales y resolvemos colisiones
+    posiciones_etiquetas = []
+    textos_etiquetas = []
+
+    for i, j, peso in lista_aristas:
+      p1 = pos[nombres[i]]
+      p2 = pos[nombres[j]]
+
+      # Distancia en el ciclo exterior
+      dist_ciclo = min((j - i) % n, (i - j) % n)
+
+      if dist_ciclo == 1:
+        # Arista perimetral: punto medio empujado un 14% hacia afuera del centro (0, 0)
+        mx = (p1[0] + p2[0]) / 2.0
+        my = (p1[1] + p2[1]) / 2.0
+        norm = math.hypot(mx, my)
+        if norm > 0:
+          mx += (mx / norm) * 0.14
+          my += (my / norm) * 0.14
+      else:
+        # Cuerda transversal interior: alternamos su posición fuera del centro (0.32 o 0.68)
+        # Esto evita que converjan al punto central del grafo
+        t = 0.32 if (i + j) % 2 == 0 else 0.68
+        mx = (1 - t) * p1[0] + t * p2[0]
+        my = (1 - t) * p1[1] + t * p2[1]
+
+      posiciones_etiquetas.append([mx, my])
+      textos_etiquetas.append(str(peso))
+
+    # Repulsión iterativa anti-colisión entre etiquetas cercanas
+    for _ in range(25):
+      for a in range(len(posiciones_etiquetas)):
+        for b in range(a + 1, len(posiciones_etiquetas)):
+          dx = posiciones_etiquetas[b][0] - posiciones_etiquetas[a][0]
+          dy = posiciones_etiquetas[b][1] - posiciones_etiquetas[a][1]
+          dist = math.hypot(dx, dy)
+          radio_minimo = 0.22  # Umbral de distancia para que no se toquen
+
+          if dist < radio_minimo:
+            overlap = (radio_minimo - dist) / 2.0
+            if dist == 0:
+              dx, dy, dist = 0.01, 0.01, math.hypot(0.01, 0.01)
+            empuje_x = (dx / dist) * overlap
+            empuje_y = (dy / dist) * overlap
+
+            posiciones_etiquetas[a][0] -= empuje_x
+            posiciones_etiquetas[a][1] -= empuje_y
+            posiciones_etiquetas[b][0] += empuje_x
+            posiciones_etiquetas[b][1] += empuje_y
+
+    # Renderizar cada etiqueta horizontal y despejada
+    for (x_lbl, y_lbl), txt in zip(posiciones_etiquetas, textos_etiquetas):
+      ax.text(
+          x_lbl,
+          y_lbl,
+          txt,
+          fontsize=8.5,
+          fontweight="bold",
+          fontfamily="monospace",
+          color="#CFCFCF",
+          ha="center",
+          va="center",
+          bbox=dict(
+              boxstyle="round,pad=0.22",
+              facecolor="#252525",
+              edgecolor="#545454",
+              linewidth=0.9,
+              alpha=0.98,
+          ),
+      )
 
     ax.axis("off")
     plt.tight_layout()
