@@ -15,21 +15,21 @@ st.set_page_config(
 )
 
 # -------------------------------------------------------------
-# ESTILOS CSS PERSONALIZADOS (DARK MODE PASTEL Y ALTO CONTRASTE)
+# ESTILOS CSS PERSONALIZADOS (DARK SLATE INTERMEDIO / PASTEL)
 # -------------------------------------------------------------
 st.markdown(
     """
 <style>
-    /* Fondo Global Dark Slate */
+    /* Fondo Global Slate Intermedio (Menos oscuro) */
     .stApp {
-        background-color: #0b0f19;
-        color: #e2e8f0 !important;
+        background-color: #172033;
+        color: #f1f5f9 !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
-    /* Tipografía y colores pastel */
+    /* Tipografía y jerarquía */
     h1, h2, h3, h4, p, span, label {
-        color: #e2e8f0 !important;
+        color: #f1f5f9 !important;
     }
     
     .terminal-kicker {
@@ -45,7 +45,7 @@ st.markdown(
         font-size: 32px;
         font-weight: 800;
         letter-spacing: -0.5px;
-        color: #f8fafc !important;
+        color: #ffffff !important;
         margin-top: 4px;
         margin-bottom: 8px;
     }
@@ -54,7 +54,7 @@ st.markdown(
     }
 
     .desc-text {
-        color: #94a3b8 !important;
+        color: #cbd5e1 !important;
         font-size: 14px;
         line-height: 1.5;
     }
@@ -64,33 +64,33 @@ st.markdown(
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        padding: 4px 10px;
+        padding: 5px 12px;
         border-radius: 8px;
         font-size: 12px;
         font-weight: 600;
         font-family: 'Courier New', monospace;
     }
     .badge-mint {
-        background: rgba(167, 243, 208, 0.12);
+        background: rgba(167, 243, 208, 0.16);
         color: #a7f3d0 !important;
-        border: 1px solid rgba(167, 243, 208, 0.25);
+        border: 1px solid rgba(167, 243, 208, 0.35);
     }
     .badge-lavender {
-        background: rgba(199, 210, 254, 0.12);
+        background: rgba(199, 210, 254, 0.16);
         color: #c7d2fe !important;
-        border: 1px solid rgba(199, 210, 254, 0.25);
+        border: 1px solid rgba(199, 210, 254, 0.35);
     }
     .badge-rose {
-        background: rgba(254, 205, 211, 0.12);
+        background: rgba(254, 205, 211, 0.16);
         color: #fecdd3 !important;
-        border: 1px solid rgba(254, 205, 211, 0.25);
+        border: 1px solid rgba(254, 205, 211, 0.35);
     }
 
     /* Métricas */
     div[data-testid="stMetricValue"] {
-        color: #f8fafc !important;
+        color: #ffffff !important;
         font-family: 'Courier New', monospace !important;
-        font-size: 24px !important;
+        font-size: 26px !important;
         font-weight: 700 !important;
     }
     div[data-testid="stMetricLabel"] p {
@@ -100,17 +100,20 @@ st.markdown(
         text-transform: uppercase !important;
     }
 
-    /* Inputs y Sliders */
+    /* Inputs, Sliders y Barra Lateral */
+    section[data-testid="stSidebar"] {
+        background-color: #121a2b !important;
+    }
     div[data-testid="stNumberInput"] input {
-        background-color: #1e293b !important;
-        color: #f8fafc !important;
-        border: 1px solid #334155 !important;
+        background-color: #243047 !important;
+        color: #ffffff !important;
+        border: 1px solid #3b4d6e !important;
         border-radius: 8px !important;
         font-family: 'Courier New', monospace !important;
     }
     div[data-testid="stNumberInput"] button {
-        background-color: #334155 !important;
-        color: #f8fafc !important;
+        background-color: #3b4d6e !important;
+        color: #ffffff !important;
     }
 
     /* Botón de Generación */
@@ -121,23 +124,24 @@ st.markdown(
         border-radius: 8px !important;
         font-weight: 700 !important;
         padding: 8px 16px !important;
-        box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35) !important;
+        box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3) !important;
         transition: all 0.2s ease !important;
     }
     div.stButton > button:hover {
         transform: translateY(-1px);
-        box-shadow: 0 6px 18px rgba(79, 70, 229, 0.45) !important;
+        box-shadow: 0 6px 18px rgba(79, 70, 229, 0.4) !important;
     }
 
     /* Caja de Cálculo Aritmético */
     .calc-box {
         background: #1e293b;
+        border: 1px solid #334155;
         border-left: 4px solid #a7f3d0;
-        border-radius: 6px;
-        padding: 12px 16px;
+        border-radius: 8px;
+        padding: 14px 18px;
         font-family: 'Courier New', monospace;
-        font-size: 13px;
-        color: #e2e8f0;
+        font-size: 13.5px;
+        color: #f1f5f9;
         margin: 10px 0;
     }
 
@@ -280,9 +284,9 @@ with c_head:
   )
   st.markdown(
       '<div class="desc-text">'
-      "Optimización discreta sobre grafos ponderados $G = (V, E, W)$. Búsqueda"
-      " del ciclo hamiltoniano que minimiza la función objetivo $C(\\pi) = \\sum"
-      " w(v_i, v_{i+1})$ en el espacio muestral factorial."
+      "Optimización discreta sobre grafos ponderados <b>G = (V, E, W)</b>."
+      " Búsqueda exhaustiva del ciclo hamiltoniano que minimiza la distancia"
+      " acumulada en el espacio muestral factorial."
       "</div>",
       unsafe_allow_html=True,
   )
@@ -292,7 +296,7 @@ with c_badges:
   st.markdown(
       f"""
     <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
-        <span class="stat-badge badge-mint">Grafo Ponderado G = (V, E)</span>
+        <span class="stat-badge badge-mint">Topología G = (V, E)</span>
         <span class="stat-badge badge-lavender">Espacio Muestral: {len(evaluaciones):,} rutas</span>
         <span class="stat-badge badge-rose">Ciclos Hamiltonianos: {len(rutas_validas)}</span>
     </div>
@@ -300,9 +304,11 @@ with c_badges:
       unsafe_allow_html=True,
   )
 
+st.latex(r"\min_{\pi} \quad C(\pi) = \sum_{i=0}^{n-1} w(v_i, v_{i+1})")
+
 st.write("")
 
-# Métricas topológicas y analíticas
+# Métricas
 kpi1, kpi2, kpi3, kpi4 = st.columns(4)
 with kpi1:
   st.metric("Vértices |V|", f"{n} Nodos")
@@ -359,7 +365,7 @@ with tab_sim:
         st.markdown(
             f"""
                 <div class="calc-box">
-                    <span style="color:#a7f3d0; font-weight:700;">Trayectoria Óptima:</span><br/>
+                    <span style="color:#a7f3d0; font-weight:700;">★ TRAYECTORIA ÓPTIMA:</span><br/>
                     <b>{mejor_evaluacion['ruta_str']}</b><br/><br/>
                     <span style="color:#94a3b8;">Suma analítica de distancias:</span><br/>
                     {mejor_evaluacion['desglose']} = <b style="color:#a7f3d0;">{mejor_costo} unidades</b>
@@ -382,12 +388,12 @@ with tab_sim:
         diferencia = seleccionada["costo"] - mejor_costo
         st.markdown(
             f"""
-                <div class="calc-box">
-                    <span style="color:#fde68a; font-weight:700;">Ciclo Hamiltoniano #{idx_ruta}:</span><br/>
+                <div class="calc-box" style="border-left-color:#fde68a;">
+                    <span style="color:#fde68a; font-weight:700;">CICLO #{idx_ruta} EVALUADO:</span><br/>
                     <b>{seleccionada['ruta_str']}</b><br/><br/>
                     <span style="color:#94a3b8;">Suma analítica:</span><br/>
                     {seleccionada['desglose']} = <b style="color:#fde68a;">{seleccionada['costo']} unidades</b><br/>
-                    <span style="color:#f87171; font-size:11px;">(Diferencia con el óptimo: +{diferencia} unidades)</span>
+                    <span style="color:#f87171; font-size:12px;">(+{diferencia} unidades respecto al óptimo)</span>
                 </div>
                 """,
             unsafe_allow_html=True,
@@ -398,19 +404,21 @@ with tab_sim:
             " dadas."
         )
 
-    with st.expander("ℹ️ Formulación Matemática del Costo"):
+    with st.expander("ℹ️ Detalle de la Función de Costo"):
       st.markdown(
           """
-            Para una permutación $\\pi = (v_0, v_1, \\dots, v_{n-1}, v_0)$ con $v_0 = A$:
-            
-            $$C(\\pi) = \\sum_{i=0}^{n-1} w(v_i, v_{i+1})$$
-            
-            * Si algún tramo $(v_i, v_{i+1}) \\notin E$, la trayectoria es discontinua y se descarta del conjunto de soluciones válidas.
-            * La solución corresponde a $\\arg\\min_{\\pi} C(\\pi)$.
+            Para una permutación $\\pi = (v_0, v_1, \\dots, v_{n-1}, v_0)$ con origen fijado en $v_0 = A$:
+            """
+      )
+      st.latex(r"C(\pi) = \sum_{i=0}^{n-1} w(v_i, v_{i+1})")
+      st.markdown(
+          """
+            * Si algún tramo $(v_i, v_{i+1}) \\notin E$, la trayectoria es discontinua y se descarta ($C = \\infty$).
+            * La solución corresponde al mínimo global: $\\arg\\min_{\\pi} C(\\pi)$.
             """
       )
 
-  # Representación Gráfica con NetworkX y Matplotlib
+  # Representación Gráfica con NetworkX y Matplotlib (Fondo Slate Suave)
   with col_graf:
     G = nx.Graph()
     for nombre in nombres:
@@ -423,12 +431,12 @@ with tab_sim:
     pos = nx.spring_layout(G, seed=42, k=2.0 / (n**0.5), iterations=60)
 
     fig, ax = plt.subplots(figsize=(6.8, 5.2), dpi=140)
-    fig.patch.set_facecolor("#111827")
-    ax.set_facecolor("#111827")
+    fig.patch.set_facecolor("#1e293b")
+    ax.set_facecolor("#1e293b")
 
-    # Aristas del grafo
+    # Aristas del grafo base
     nx.draw_networkx_edges(
-        G, pos, ax=ax, edge_color="#334155", width=1.5, alpha=0.7
+        G, pos, ax=ax, edge_color="#475569", width=1.5, alpha=0.75
     )
 
     # Resaltar trayectoria activa
@@ -448,12 +456,12 @@ with tab_sim:
           edgelist=aristas_resaltadas,
           ax=ax,
           edge_color=color_ruta,
-          width=3.6,
-          alpha=0.95,
+          width=3.8,
+          alpha=0.98,
       )
 
-    # Vértices (Nodo A distinguido)
-    colores_nodos = ["#a7f3d0" if i == 0 else "#1e293b" for i in range(n)]
+    # Vértices (Nodo A menta pastel, resto lavanda suave)
+    colores_nodos = ["#a7f3d0" if i == 0 else "#2d3b55" for i in range(n)]
     bordes_nodos = ["#059669" if i == 0 else "#c7d2fe" for i in range(n)]
     textos_nodos = ["#064e3b" if i == 0 else "#f8fafc" for i in range(n)]
 
@@ -462,7 +470,7 @@ with tab_sim:
         pos,
         ax=ax,
         node_color=colores_nodos,
-        node_size=880,
+        node_size=900,
         edgecolors=bordes_nodos,
         linewidths=2.2,
     )
@@ -472,7 +480,7 @@ with tab_sim:
           pos[nombre][0],
           pos[nombre][1],
           nombre,
-          fontsize=11,
+          fontsize=11.5,
           fontweight="bold",
           color=textos_nodos[idx],
           ha="center",
@@ -486,15 +494,16 @@ with tab_sim:
         pos,
         edge_labels=edge_labels,
         ax=ax,
-        font_size=7.5,
-        font_color="#cbd5e1",
+        font_size=8,
+        font_color="#f1f5f9",
         font_family="monospace",
+        font_weight="bold",
         bbox=dict(
             boxstyle="round,pad=0.22",
-            facecolor="#0b0f19",
-            edgecolor="#334155",
+            facecolor="#172033",
+            edgecolor="#475569",
             linewidth=0.8,
-            alpha=0.92,
+            alpha=0.95,
         ),
     )
 
@@ -507,10 +516,10 @@ with tab_sim:
 # -------------------------------------------------------------
 with tab_matriz:
   st.markdown(
-      '<div style="font-size:13px; color:#94a3b8; margin-bottom:12px;">Matriz'
-      " de adyacencia ponderada simétrica correspondiente al grafo $G = (V, E,"
-      " W)$. El símbolo '—' denota ausencia de arista directa ($w = \\infty$)."
-      "</div>",
+      '<div style="font-size:14px; color:#cbd5e1; margin-bottom:12px;">Matriz'
+      " de adyacencia ponderada simétrica correspondiente al grafo <b>G = (V, E,"
+      " W)</b>. El símbolo '—' denota ausencia de arista directa ($w ="
+      " \\infty$).</div>",
       unsafe_allow_html=True,
   )
 
@@ -538,11 +547,11 @@ with tab_matriz:
 with tab_auditoria:
   st.markdown("#### Condición Necesaria de Grado Mínimo")
   st.markdown(
-      '<div style="font-size:13px; color:#94a3b8; margin-bottom:14px;">En'
+      '<div style="font-size:14px; color:#cbd5e1; margin-bottom:14px;">En'
       " teoría de grafos, una condición fundamental para que un ciclo"
-      " hamiltoniano exista es que cada vértice posea al menos dos aristas"
-      " incidentes: $deg(v) \\ge 2$ (una para entrar y otra para salir sin"
-      " repetir vértices).</div>",
+      " hamiltoniano exista es que cada vértice satisfaga la condición de grado"
+      " <b>deg(v) ≥ 2</b> (permitiendo una arista incidente de entrada y una"
+      " de salida sin repetir vértices).</div>",
       unsafe_allow_html=True,
   )
 
