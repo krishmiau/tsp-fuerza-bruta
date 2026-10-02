@@ -15,28 +15,28 @@ st.set_page_config(
 )
 
 # -------------------------------------------------------------
-# ESTILOS CSS PERSONALIZADOS (DARK MODE PASTEL & ALTA LEGIBILIDAD)
+# ESTILOS CSS PERSONALIZADOS (TEMA CLARO EDITORIAL DE ALTO CONTRASTE)
 # -------------------------------------------------------------
 st.markdown(
     """
 <style>
-    /* Fondo Global */
+    /* Fondo Global Claro y Tipografía */
     .stApp {
-        background-color: #0b0f19;
-        color: #f1f5f9 !important;
+        background-color: #f8fafc;
+        color: #0f172a !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
-    /* Jerarquía de textos más grandes y legibles */
-    p, span, label, div {
-        color: #f1f5f9 !important;
+    /* Jerarquía de textos oscuros legibles */
+    p, span, label, div, h1, h2, h3, h4 {
+        color: #0f172a !important;
     }
     
     .terminal-kicker {
         font-family: 'Courier New', monospace;
         font-size: 13px;
         letter-spacing: 2.5px;
-        color: #86efac !important; /* Menta pastel brillante */
+        color: #4f46e5 !important; /* Índigo */
         font-weight: 800;
         text-transform: uppercase;
         margin-bottom: 4px;
@@ -46,22 +46,22 @@ st.markdown(
         font-size: 42px;
         font-weight: 800;
         letter-spacing: -0.5px;
-        color: #ffffff !important;
+        color: #0f172a !important;
         margin-top: 0px;
         margin-bottom: 12px;
     }
     .main-title span {
-        color: #c7d2fe !important; /* Lavanda pastel */
+        color: #4f46e5 !important;
     }
 
     .desc-text {
-        color: #cbd5e1 !important;
+        color: #334155 !important;
         font-size: 16px;
         line-height: 1.6;
         margin-bottom: 14px;
     }
 
-    /* Insignias superiores */
+    /* Insignias superiores claras */
     .stat-badge {
         display: inline-flex;
         align-items: center;
@@ -73,56 +73,57 @@ st.markdown(
         font-family: 'Courier New', monospace;
     }
     .badge-mint {
-        background: rgba(134, 239, 172, 0.12);
-        color: #86efac !important;
-        border: 1px solid rgba(134, 239, 172, 0.3);
+        background: #ecfdf5;
+        color: #047857 !important;
+        border: 1px solid #a7f3d0;
     }
     .badge-lavender {
-        background: rgba(199, 210, 254, 0.12);
-        color: #c7d2fe !important;
-        border: 1px solid rgba(199, 210, 254, 0.3);
+        background: #eef2ff;
+        color: #4338ca !important;
+        border: 1px solid #c7d2fe;
     }
     .badge-rose {
-        background: rgba(254, 205, 211, 0.12);
-        color: #fecdd3 !important;
-        border: 1px solid rgba(254, 205, 211, 0.3);
+        background: #fff1f2;
+        color: #be123c !important;
+        border: 1px solid #fecdd3;
     }
 
-    /* Métricas destacadas con números grandes */
+    /* Métricas destacadas */
     div[data-testid="stMetricValue"] {
-        color: #ffffff !important;
+        color: #0f172a !important;
         font-family: 'Courier New', monospace !important;
         font-size: 32px !important;
         font-weight: 800 !important;
     }
     div[data-testid="stMetricLabel"] p {
-        color: #94a3b8 !important;
+        color: #64748b !important;
         font-size: 13px !important;
         font-weight: 700 !important;
         letter-spacing: 0.5px !important;
         text-transform: uppercase !important;
     }
 
-    /* Caja de Cálculo Aritmético con letras claras */
+    /* Caja de Cálculo Aritmético en fondo claro */
     .calc-box {
-        background: #111827;
-        border: 1px solid #1f2937;
-        border-left: 5px solid #86efac;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-left: 5px solid #059669;
         border-radius: 10px;
         padding: 16px 20px;
         font-family: 'Courier New', monospace;
         font-size: 15px;
-        color: #f8fafc;
+        color: #0f172a;
         margin: 14px 0;
         line-height: 1.6;
+        box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.05);
     }
 
-    /* Inputs y Sliders */
+    /* Inputs y Sliders claros */
     div[data-testid="stNumberInput"] input {
-        background-color: #1e293b !important;
-        color: #ffffff !important;
+        background-color: #ffffff !important;
+        color: #0f172a !important;
         font-size: 16px !important;
-        border: 1px solid #475569 !important;
+        border: 1.5px solid #cbd5e1 !important;
         border-radius: 8px !important;
     }
 
@@ -135,12 +136,34 @@ st.markdown(
         font-weight: 800 !important;
         font-size: 15px !important;
         padding: 10px 18px !important;
-        box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4) !important;
+        box-shadow: 0 4px 14px rgba(79, 70, 229, 0.25) !important;
         transition: all 0.2s ease !important;
     }
     div.stButton > button:hover {
         transform: translateY(-1px);
-        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.5) !important;
+        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35) !important;
+    }
+    div.stButton > button p {
+        color: #ffffff !important;
+    }
+
+    /* Botón de descarga CSV */
+    div.stDownloadButton > button {
+        border-radius: 8px !important;
+        border: 1px solid #cbd5e1 !important;
+        background-color: #ffffff !important;
+        color: #1e293b !important;
+        font-weight: 700 !important;
+        font-size: 13px !important;
+        padding: 6px 14px !important;
+        transition: all 0.2s ease !important;
+    }
+    div.stDownloadButton > button:hover {
+        border-color: #4f46e5 !important;
+        color: #4f46e5 !important;
+    }
+    div.stDownloadButton > button p {
+        color: #1e293b !important;
     }
 
     /* Ocultar barra flotante de tabla */
@@ -184,7 +207,7 @@ with st.sidebar:
   st.markdown("---")
   st.markdown(
       """
-    <div style="font-size: 13px; color: #94a3b8; line-height: 1.6;">
+    <div style="font-size: 13px; color: #64748b; line-height: 1.6;">
         <b>Propiedad Combinatoria:</b><br/>
         Al fijar el nodo origen en <code>A</code>, el espacio muestral de trayectorias cerradas se define exactamente por <code>(n - 1)!</code> permutaciones.
     </div>
@@ -266,7 +289,7 @@ rutas_validas = [r for r in evaluaciones if r["valida"]]
 rutas_validas_ordenadas = sorted(rutas_validas, key=lambda x: x["costo"])
 
 # -------------------------------------------------------------
-# CABECERA Y FÓRMULAS CON RENDERIZADO MATEMÁTICO REAL
+# CABECERA Y FÓRMULAS MATEMÁTICAS FORMALES
 # -------------------------------------------------------------
 c_head, c_badges = st.columns([2.5, 1.5])
 with c_head:
@@ -302,7 +325,6 @@ with c_badges:
       unsafe_allow_html=True,
   )
 
-# Renderizado matemático formal sin que se rompa ni salga con dólares
 st.latex(r"\min_{\pi} \quad C(\pi) = \sum_{i=0}^{n-1} w(v_i, v_{i+1})")
 
 st.write("")
@@ -364,10 +386,10 @@ with tab_sim:
         st.markdown(
             f"""
                 <div class="calc-box">
-                    <span style="color:#86efac; font-weight:800; font-size:16px;">★ TRAYECTORIA ÓPTIMA:</span><br/>
-                    <b style="font-size:17px; color:#ffffff;">{mejor_evaluacion['ruta_str']}</b><br/><br/>
-                    <span style="color:#94a3b8; font-size:13px;">Suma aritmética de distancias:</span><br/>
-                    <span style="font-size:15px;">{mejor_evaluacion['desglose']} = <b style="color:#86efac;">{mejor_costo} unidades</b></span>
+                    <span style="color:#059669; font-weight:800; font-size:16px;">★ TRAYECTORIA ÓPTIMA:</span><br/>
+                    <b style="font-size:17px; color:#0f172a;">{mejor_evaluacion['ruta_str']}</b><br/><br/>
+                    <span style="color:#64748b; font-size:13px;">Suma aritmética de distancias:</span><br/>
+                    <span style="font-size:15px; color:#1e293b;">{mejor_evaluacion['desglose']} = <b style="color:#059669;">{mejor_costo} unidades</b></span>
                 </div>
                 """,
             unsafe_allow_html=True,
@@ -387,12 +409,12 @@ with tab_sim:
         diferencia = seleccionada["costo"] - mejor_costo
         st.markdown(
             f"""
-                <div class="calc-box">
-                    <span style="color:#fde68a; font-weight:800; font-size:16px;">CICLO #{idx_ruta} EVALUADO:</span><br/>
-                    <b style="font-size:17px; color:#ffffff;">{seleccionada['ruta_str']}</b><br/><br/>
-                    <span style="color:#94a3b8; font-size:13px;">Suma aritmética:</span><br/>
-                    <span style="font-size:15px;">{seleccionada['desglose']} = <b style="color:#fde68a;">{seleccionada['costo']} unidades</b></span><br/>
-                    <span style="color:#f87171; font-size:12px; font-weight:bold;">(+{diferencia} unidades respecto al óptimo)</span>
+                <div class="calc-box" style="border-left-color:#d97706;">
+                    <span style="color:#d97706; font-weight:800; font-size:16px;">CICLO #{idx_ruta} EVALUADO:</span><br/>
+                    <b style="font-size:17px; color:#0f172a;">{seleccionada['ruta_str']}</b><br/><br/>
+                    <span style="color:#64748b; font-size:13px;">Suma aritmética:</span><br/>
+                    <span style="font-size:15px; color:#1e293b;">{seleccionada['desglose']} = <b style="color:#d97706;">{seleccionada['costo']} unidades</b></span><br/>
+                    <span style="color:#dc2626; font-size:12px; font-weight:bold;">(+{diferencia} unidades respecto al óptimo)</span>
                 </div>
                 """,
             unsafe_allow_html=True,
@@ -417,7 +439,7 @@ with tab_sim:
             """
       )
 
-  # Representación Gráfica con NetworkX y Matplotlib (Alta legibilidad)
+  # Representación Gráfica con NetworkX y Matplotlib (Tema Claro Nítido)
   with col_graf:
     G = nx.Graph()
     for nombre in nombres:
@@ -430,20 +452,20 @@ with tab_sim:
     pos = nx.spring_layout(G, seed=42, k=2.0 / (n**0.5), iterations=60)
 
     fig, ax = plt.subplots(figsize=(7.2, 5.4), dpi=140)
-    fig.patch.set_facecolor("#111827")
-    ax.set_facecolor("#111827")
+    fig.patch.set_facecolor("#ffffff")
+    ax.set_facecolor("#ffffff")
 
-    # 1. Aristas base
+    # 1. Aristas base tenues
     nx.draw_networkx_edges(
-        G, pos, ax=ax, edge_color="#334155", width=1.6, alpha=0.75
+        G, pos, ax=ax, edge_color="#e2e8f0", width=1.6, alpha=0.9
     )
 
     # 2. Resaltar trayectoria activa
     if ruta_a_dibujar:
       color_ruta = (
-          "#86efac"
+          "#059669"
           if modo_vista == "⭐ Ciclo Hamiltoniano Óptimo (Mínimo)"
-          else "#fde68a"
+          else "#d97706"
       )
       aristas_resaltadas = [
           (nombres[ruta_a_dibujar[i]], nombres[ruta_a_dibujar[i + 1]])
@@ -455,14 +477,14 @@ with tab_sim:
           edgelist=aristas_resaltadas,
           ax=ax,
           edge_color=color_ruta,
-          width=4.0,
-          alpha=0.98,
+          width=3.8,
+          alpha=0.95,
       )
 
-    # 3. Vértices con fuentes más grandes
-    colores_nodos = ["#86efac" if i == 0 else "#1e293b" for i in range(n)]
-    bordes_nodos = ["#16a34a" if i == 0 else "#c7d2fe" for i in range(n)]
-    textos_nodos = ["#064e3b" if i == 0 else "#ffffff" for i in range(n)]
+    # 3. Vértices con doble aro y alto contraste
+    colores_nodos = ["#4f46e5" if i == 0 else "#ffffff" for i in range(n)]
+    bordes_nodos = ["#3730a3" if i == 0 else "#64748b" for i in range(n)]
+    textos_nodos = ["#ffffff" if i == 0 else "#0f172a" for i in range(n)]
 
     nx.draw_networkx_nodes(
         G,
@@ -486,7 +508,7 @@ with tab_sim:
           va="center",
       )
 
-    # 4. Pesos de las aristas con mayor nitidez
+    # 4. Pesos de las aristas en cápsulas claras
     edge_labels = nx.get_edge_attributes(G, "weight")
     nx.draw_networkx_edge_labels(
         G,
@@ -494,15 +516,15 @@ with tab_sim:
         edge_labels=edge_labels,
         ax=ax,
         font_size=9,
-        font_color="#f1f5f9",
+        font_color="#334155",
         font_family="monospace",
         font_weight="bold",
         bbox=dict(
             boxstyle="round,pad=0.25",
-            facecolor="#0b0f19",
-            edgecolor="#475569",
+            facecolor="#ffffff",
+            edgecolor="#cbd5e1",
             linewidth=1.0,
-            alpha=0.95,
+            alpha=0.98,
         ),
     )
 
@@ -516,7 +538,7 @@ with tab_sim:
 with tab_matriz:
   st.markdown(
       """
-    <div style="font-size:15px; color:#cbd5e1; margin-bottom:14px;">
+    <div style="font-size:15px; color:#334155; margin-bottom:14px;">
         Matriz de adyacencia ponderada simétrica correspondiente al grafo <b>G = (V, E, W)</b>. El símbolo '—' denota ausencia de conexión directa.
     </div>
     """,
@@ -548,7 +570,7 @@ with tab_auditoria:
   st.markdown("#### Condición Necesaria de Grado Mínimo")
   st.markdown(
       """
-    <div style="font-size:15px; color:#cbd5e1; margin-bottom:16px;">
+    <div style="font-size:15px; color:#334155; margin-bottom:16px;">
         En teoría de grafos, una condición necesaria para la existencia de un ciclo hamiltoniano es que cada vértice satisfaga la condición de grado <b>deg(v) ≥ 2</b> (permitiendo una arista de entrada y una de salida sin repetir vértices).
     </div>
     """,
