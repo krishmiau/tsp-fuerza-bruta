@@ -477,4 +477,101 @@ with tab_sim:
         pos,
         ax=ax,
         node_color=colores_nodos,
-        node_size=90
+        node_size=900,
+        edgecolors=bordes_nodos,
+        linewidths=2.2,
+    )
+
+    for idx, nombre in enumerate(nombres):
+      ax.text(
+          pos[nombre][0],
+          pos[nombre][1],
+          nombre,
+          fontsize=11.5,
+          fontweight="bold",
+          color=textos_nodos[idx],
+          ha="center",
+          va="center",
+      )
+
+    # Pesos de las aristas
+    edge_labels = nx.get_edge_attributes(G, "weight")
+    nx.draw_networkx_edge_labels(
+        G,
+        pos,
+        edge_labels=edge_labels,
+        ax=ax,
+        font_size=8,
+        font_color="#f1f5f9",
+        font_family="monospace",
+        font_weight="bold",
+        bbox=dict(
+            boxstyle="round,pad=0.22",
+            facecolor="#172033",
+            edgecolor="#475569",
+            linewidth=0.8,
+            alpha=0.95,
+        ),
+    )
+
+    ax.axis("off")
+    plt.tight_layout()
+    st.pyplot(fig)
+
+# -------------------------------------------------------------
+# PESTAÑA 2: MATRIZ DE COSTOS
+# -------------------------------------------------------------
+with tab_matriz:
+  st.markdown(
+      '<div style="font-size:14px; color:#cbd5e1; margin-bottom:12px;">Matriz'
+      " de adyacencia ponderada simétrica correspondiente al grafo <b>G = (V, E,"
+      " W)</b>. El símbolo '—' denota ausencia de arista directa ($w ="
+      " \\infty$).</div>",
+      unsafe_allow_html=True,
+  )
+
+  df_matriz = pd.DataFrame(
+      [
+          [val if val is not None else "—" for val in fila]
+          for fila in matriz
+      ],
+      index=nombres,
+      columns=nombres,
+  )
+  st.dataframe(df_matriz, use_container_width=True)
+
+  csv = df_matriz.to_csv().encode("utf-8")
+  st.download_button(
+      label="📥 Exportar Matriz a CSV",
+      data=csv,
+      file_name="matriz_adyacencia_ponderada.csv",
+      mime="text/csv",
+  )
+
+# -------------------------------------------------------------
+# PESTAÑA 3: AUDITORÍA DE HAMILTONICIDAD
+# -------------------------------------------------------------
+with tab_auditoria:
+  st.markdown("#### Condición Necesaria de Grado Mínimo")
+  st.markdown(
+      '<div style="font-size:14px; color:#cbd5e1; margin-bottom:14px;">En'
+      " teoría de grafos, una condición fundamental para que un ciclo"
+      " hamiltoniano exista es que cada vértice satisfaga la condición de grado"
+      " <b>deg(v) ≥ 2</b> (permitiendo una arista incidente de entrada y una"
+      " de salida sin repetir vértices).</div>",
+      unsafe_allow_html=True,
+  )
+
+  grados_data = []
+  for i in range(n):
+    g = sum(1 for j in range(n) if matriz[i][j] is not None)
+    cumple = g >= 2
+    grados_data.append({
+        "Vértice": nombres[i],
+        "Grado deg(v)": g,
+        "Condición deg(v) ≥ 2": (
+            "✅ Satisfecho" if cumple else "❌ No cumple (deg < 2)"
+        ),
+    })
+
+  st.table(pd.DataFrame(grados_data))
