@@ -187,11 +187,15 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-# Inicializar estados de navegación
+# Inicializar estados de navegación y simulación
 if "puesto_ranking" not in st.session_state:
     st.session_state.puesto_ranking = 1
 if "paso_manual" not in st.session_state:
     st.session_state.paso_manual = 0
+if "sim_activa" not in st.session_state:
+    st.session_state.sim_activa = False
+if "paso_auto" not in st.session_state:
+    st.session_state.paso_auto = 0
 
 # -------------------------------------------------------------
 # MODELADO MATRICIAL Y GENERACIÓN DEL GRAFO
@@ -200,7 +204,6 @@ if "matriz" not in st.session_state or generar or len(st.session_state.matriz) !
     random.seed(int(time.time()) if generar else 42)
     matriz = [[None for _ in range(n)] for _ in range(n)]
 
-    # Ciclo base conexo con permutación
     orden_base = list(range(n))
     random.shuffle(orden_base)
     for i in range(n):
@@ -210,7 +213,6 @@ if "matriz" not in st.session_state or generar or len(st.session_state.matriz) !
         matriz[u][v] = peso
         matriz[v][u] = peso
 
-    # Conexiones adicionales según densidad
     for i in range(n):
         for j in range(i + 1, n):
             if matriz[i][j] is None and random.random() < (densidad / 100.0):
@@ -221,6 +223,8 @@ if "matriz" not in st.session_state or generar or len(st.session_state.matriz) !
     st.session_state.matriz = matriz
     st.session_state.puesto_ranking = 1
     st.session_state.paso_manual = 0
+    st.session_state.sim_activa = False
+    st.session_state.paso_auto = 0
 
 matriz = st.session_state.matriz
 nombres = [chr(65 + i) for i in range(n)]
@@ -302,11 +306,9 @@ rutas_validas_ranking = sorted(rutas_validas, key=lambda x: x["costo"])
 total_pasos = len(evaluaciones)
 total_factibles = len(rutas_validas_ranking)
 
-# Asegurar que puesto_ranking esté en un rango válido
 if st.session_state.puesto_ranking > max(1, total_factibles):
     st.session_state.puesto_ranking = 1
 
-# Geometría del grafo
 pos = {}
 for i in range(n):
     angulo = (2 * math.pi * i / n) + (math.pi / 2)
@@ -467,7 +469,7 @@ tab_ranking, tab_simulador, tab_contexto, tab_matriz, tab_auditoria = st.tabs([
 ])
 
 # -------------------------------------------------------------
-# PESTAÑA 1: RESULTADOS ORDENADOS CON BOTONES DE NAVEGACIÓN
+# PESTAÑA 1: RESULTADOS ORDENADOS (RANKING)
 # -------------------------------------------------------------
 with tab_ranking:
     st.markdown("### Ranking de Ciclos Factibles (Menor a Mayor Costo)")
@@ -479,7 +481,6 @@ with tab_ranking:
         with col_r_info:
             st.markdown(f"**Navegación del Ranking ({total_factibles} ciclos encontrados):**")
 
-            # Botones de navegación directa
             b_first, b_prev, b_next, b_last = st.columns(4)
             with b_first:
                 if st.button("⏮️ Inicio", use_container_width=True):
@@ -498,7 +499,6 @@ with tab_ranking:
                     st.session_state.puesto_ranking = total_factibles
                     st.rerun()
 
-            # Entrada numérica directa
             nuevo_puesto = st.number_input(
                 f"Ir directo al puesto (1 al {total_factibles}):",
                 min_value=1,
@@ -553,7 +553,7 @@ with tab_ranking:
         st.warning("El grafo generado no contiene ciclos hamiltonianos conexos con los parámetros actuales.")
 
 # -------------------------------------------------------------
-# PESTAÑA 2: EXPLORADOR PASO A PASO (SIMULADOR)
+# PESTAÑA 2: EXPLORADOR PASO A PASO (CON BOTÓN DE PAUSA)
 # -------------------------------------------------------------
 with tab_simulador:
     st.markdown("### Simulación de Búsqueda, Comparaciones y Descartes")
@@ -561,7 +561,7 @@ with tab_simulador:
 
     modo_ejecucion = st.radio(
         "Modo de control:",
-        ["🕹️️ Manual (Paso a paso)", "▶️ Automático (Animación en vivo)"],
+        ["🕹️ Manual (Paso a paso)", "▶️ Automático (Animación en vivo)"],
         horizontal=True,
     )
 
@@ -614,18 +614,29 @@ with tab_simulador:
                 st.markdown(f"**Récord Mínimo Vigente en este paso:** `{record_texto}`")
 
     else:
-        c_ctrl1, c_ctrl2 = st.columns([2, 1])
-        with c_ctrl1:
-            velocidad = st.slider("Velocidad de simulación (segundos por paso):", min_value=0.05, max_value=1.0, value=0.25, step=0.05)
-        with c_ctrl2:
-            st.write("&nbsp;")
-            btn_play = st.button("▶️ Iniciar / Reiniciar Simulación", use_container_width=True)
+        # Modo Automático con Pausa y Reanudación
+        velocidad = st.slider("Velocidad de simulación (segundos por paso):", min_value=0.05, max_value=1.0, value=0.25, step=0.05)
+
+        c_play, c_pause, c_reset = st.columns(3)
+        with c_play:
+            if st.button("▶️ Iniciar / Reanudar", use_container_width=True):
+                st.session_state.sim_activa = True
+                st.rerun()
+        with c_pause:
+            if st.button("⏸️ Pausar", use_container_width=True):
+                st.session_state.sim_activa = False
+                st.rerun()
+        with c_reset:
+            if st.button("⏮️ Reiniciar al Inicio", use_container_width=True):
+                st.session_state.sim_activa = False
+                st.session_state.paso_auto = 0
+                st.rerun()
 
         contenedor_animacion = st.empty()
 
-        if btn_play:
-            for p in range(total_pasos):
-                paso_datos = evaluaciones[p]
+        if st.session_state.sim_activa:
+            while st.session_state.paso_auto < total_pasos and st.session_state.sim_activa:
+                paso_datos = evaluaciones[st.session_state.paso_auto]
                 with contenedor_animacion.container():
                     c_g_auto, c_i_auto = st.columns([1.4, 1])
                     with c_g_auto:
@@ -634,7 +645,7 @@ with tab_simulador:
                         plt.close(fig_auto)
                     with c_i_auto:
                         with st.container(border=True):
-                            st.progress((p + 1) / total_pasos, text=f"Progreso: {p + 1}/{total_pasos} permutaciones")
+                            st.progress((st.session_state.paso_auto + 1) / total_pasos, text=f"Progreso: {st.session_state.paso_auto + 1}/{total_pasos} permutaciones")
                             st.markdown(f"#### Paso {paso_datos['paso']} / {total_pasos}")
                             st.markdown(f"**Trayectoria:** `{paso_datos['ruta_str']}`")
                             st.caption("Suma analítica:")
@@ -655,22 +666,30 @@ with tab_simulador:
                             rec_str = f"{paso_datos['costo_record']} unidades" if paso_datos["costo_record"] else "Aún sin solución"
                             st.markdown(f"**Récord Óptimo al momento:** `{rec_str}`")
 
+                st.session_state.paso_auto += 1
                 time.sleep(velocidad)
+
+            if st.session_state.paso_auto >= total_pasos:
+                st.session_state.sim_activa = False
+                st.session_state.paso_auto = total_pasos - 1
+                st.rerun()
+
         else:
-            primer_paso = evaluaciones[0]
+            # Estado en pausa mostrando la posición actual retenida
+            paso_pausa = evaluaciones[min(st.session_state.paso_auto, total_pasos - 1)]
             with contenedor_animacion.container():
                 c_g_auto, c_i_auto = st.columns([1.4, 1])
                 with c_g_auto:
-                    fig_ini = dibujar_figura_grafo(primer_paso["ruta_indices"], primer_paso["estado"])
-                    st.pyplot(fig_ini)
-                    plt.close(fig_ini)
+                    fig_pausa = dibujar_figura_grafo(paso_pausa["ruta_indices"], paso_pausa["estado"])
+                    st.pyplot(fig_pausa)
+                    plt.close(fig_pausa)
                 with c_i_auto:
                     with st.container(border=True):
-                        st.markdown("#### Simulación en pausa")
-                        st.write("Haz clic en **'Iniciar / Reiniciar Simulación'** para observar la exploración automática continua de cada ciclo.")
+                        st.markdown(f"#### ⏸️ Simulación en Pausa (Paso {paso_pausa['paso']} / {total_pasos})")
+                        st.write("Pulsa **'Iniciar / Reanudar'** para continuar la animación automática desde este paso.")
                         st.markdown("---")
-                        st.markdown(f"**Primera ruta a evaluar:** `{primer_paso['ruta_str']}`")
-                        st.caption(f"**Estado inicial:** {primer_paso['motivo']}")
+                        st.markdown(f"**Ruta actual retenida:** `{paso_pausa['ruta_str']}`")
+                        st.caption(f"**Estado:** {paso_pausa['motivo']}")
 
     st.markdown("---")
     st.markdown("#### 📋 Bitácora Completa de Comparaciones y Descartes")
